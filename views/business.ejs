@@ -10,7 +10,7 @@
   <div class="wrap biz-hero-in">
     <div class="biz-logo lg"><% if (biz.logo) { %><img src="<%= biz.logo %>" alt="Logo de <%= biz.name %>"><% } else { %><span><%= biz.category_icon || '🏪' %></span><% } %></div>
     <div>
-      <p class="eyebrow light"><a href="/buscar?cat=<%= biz.category_slug %>"><%= biz.category_name %></a><%= biz.zone ? ' · ' + biz.zone : '' %></p>
+      <p class="eyebrow light"><% if (biz.category_slug) { %><a href="/buscar?cat=<%= biz.category_slug %>"><%= biz.category_name %></a><% } else { %>Comercio<% } %><%= biz.zone ? ' · ' + biz.zone : '' %></p>
       <h1><%= biz.name %></h1>
       <div class="biz-badges">
         <% if (biz.hasHours) { %><span class="tag <%= biz.open ? 'tag-open' : 'tag-closed' %>"><%= biz.open ? 'Abierto ahora' : 'Cerrado ahora' %></span><% } %>

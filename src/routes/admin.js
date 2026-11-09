@@ -42,12 +42,23 @@ module.exports = function adminRoutes() {
     const stillPaying = approved.filter((b) => payingIds.has(b.id) && lib.effectivePlan(b) !== 'basico').length;
     const expiring = approved.filter((b) => b.plan !== 'basico' && b.plan_until && b.plan_until > now && b.plan_until < lib.sqlPlusDays(7));
     const leads = await db.all('SELECT * FROM leads ORDER BY created_at DESC LIMIT 5');
+    const pendingList = await db.all(`SELECT b.id, b.name, b.zone, b.created_at, b.whatsapp, c.name AS category_name, c.icon AS category_icon, u.email
+      FROM businesses b JOIN users u ON u.id = b.owner_id LEFT JOIN categories c ON c.id = b.category_id
+      WHERE b.status = 'pending' ORDER BY b.created_at LIMIT 6`);
+    const viewRows = await db.all(`SELECT to_char(created_at::timestamp - interval '3 hours', 'YYYY-MM-DD') AS d, COUNT(*)::int AS n FROM events
+      WHERE type IN ('view','product_view') AND created_at > ? GROUP BY d`, lib.sqlDaysAgo(15));
+    const viewMap = Object.fromEntries(viewRows.map((v) => [v.d, v.n]));
+    const daily = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(Date.now() - 3 * 3600000 - i * 86400000).toISOString().slice(0, 10);
+      daily.push({ d, n: viewMap[d] || 0 });
+    }
     res.render('admin/dashboard', {
-      title: 'Administración', stats: {
+      title: 'Resumen', stats: {
         total: all.length, approved: approved.length, pending: all.filter((b) => b.status === 'pending').length,
         paid: paid.length, mrr, activeBiz, req30, ans30, contacts30, views30, redemptions30, everPaid, stillPaying,
         products: await count('SELECT COUNT(*) n FROM products WHERE active = 1'),
-      }, weekly, expiring, leads,
+      }, weekly, expiring, leads, pendingList, daily,
     });
   });
 
@@ -63,7 +74,9 @@ module.exports = function adminRoutes() {
       FROM businesses b JOIN users u ON u.id = b.owner_id LEFT JOIN categories c ON c.id = b.category_id
       ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY CASE b.status WHEN 'pending' THEN 0 ELSE 1 END, b.created_at DESC`, ...params);
     list.forEach((b) => { b.effPlan = lib.effectivePlan(b); });
-    res.render('admin/businesses', { title: 'Comercios', list, estado, q });
+    const totals = { all: 0, pending: 0, approved: 0, suspended: 0 };
+    for (const row of await db.all('SELECT status, COUNT(*)::int AS n FROM businesses GROUP BY status')) { totals[row.status] = row.n; totals.all += row.n; }
+    res.render('admin/businesses', { title: 'Comercios', list, estado, q, totals });
   });
 
   r.get('/comercios/nuevo', (req, res) => res.render('admin/business-new', { title: 'Alta de comercio', error: null, form: {} }));
@@ -117,8 +130,9 @@ module.exports = function adminRoutes() {
       plan = 'pro'; until = lib.sqlPlusDays(Number(req.settings.trial_days) || 30);
     }
     await db.run('UPDATE businesses SET status = ?, plan = ?, plan_until = ? WHERE id = ?', status, plan, until, req.biz.id);
-    req.flash('ok', status === 'approved' ? 'Comercio publicado.' : status === 'suspended' ? 'Comercio suspendido (no se muestra).' : 'Comercio en revisión.');
-    res.redirect(`/admin/comercios/${req.biz.id}`);
+    req.flash('ok', status === 'approved' ? `“${req.biz.name}” ya está publicado.` : status === 'suspended' ? 'Comercio suspendido (no se muestra).' : 'Comercio en revisión.');
+    const back = String(req.body.back || '');
+    res.redirect(back.startsWith('/admin') && !back.startsWith('//') ? back : `/admin/comercios/${req.biz.id}`);
   });
 
   r.post('/comercios/:id/plan', loadBiz, async (req, res) => {
@@ -234,20 +248,74 @@ module.exports = function adminRoutes() {
     req.flash('ok', 'Ajustes guardados.');
     res.redirect('/admin/ajustes');
   });
+  // ---------- Rubros (categorías) ----------
+  r.get('/rubros', async (req, res) => {
+    const list = await db.all(`SELECT c.*,
+        (SELECT COUNT(*)::int FROM businesses b WHERE b.category_id = c.id) AS businesses,
+        (SELECT COUNT(*)::int FROM businesses b WHERE b.category_id = c.id AND b.status = 'approved') AS published,
+        (SELECT COUNT(*)::int FROM requests q WHERE q.category_id = c.id) AS requests
+      FROM categories c ORDER BY c.sort, c.id`);
+    res.render('admin/categories', { title: 'Rubros', list });
+  });
   r.post('/categorias', async (req, res) => {
     const name = lib.clip(req.body.name, 60);
-    if (name) {
-      const max = (await db.get('SELECT MAX(sort) AS m FROM categories')).m || 0;
-      await db.run('INSERT INTO categories (slug, name, icon, sort) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING', lib.slugify(name), name, lib.clip(req.body.icon, 8) || '🏪', max + 1);
-      req.flash('ok', 'Rubro agregado.');
-    }
-    res.redirect('/admin/ajustes#rubros');
+    if (!name) { req.flash('warn', 'Escribí el nombre del rubro.'); return res.redirect('/admin/rubros'); }
+    let slug = lib.slugify(name), i = 2;
+    while (await db.get('SELECT id FROM categories WHERE slug = ?', slug)) slug = `${lib.slugify(name)}-${i++}`;
+    const max = (await db.get('SELECT MAX(sort) AS m FROM categories')).m || 0;
+    await db.run('INSERT INTO categories (slug, name, icon, sort) VALUES (?, ?, ?, ?)', slug, name, lib.clip(req.body.icon, 8) || '🏪', max + 1);
+    req.flash('ok', `Rubro “${name}” agregado.`);
+    res.redirect('/admin/rubros');
   });
   r.post('/categorias/:id', async (req, res) => {
     const name = lib.clip(req.body.name, 60);
-    if (name) await db.run('UPDATE categories SET name = ?, icon = ? WHERE id = ?', name, lib.clip(req.body.icon, 8) || '🏪', lib.toInt(req.params.id));
-    req.flash('ok', 'Rubro actualizado.');
-    res.redirect('/admin/ajustes#rubros');
+    if (name) {
+      await db.run('UPDATE categories SET name = ?, icon = ? WHERE id = ?', name, lib.clip(req.body.icon, 8) || '🏪', lib.toInt(req.params.id));
+      req.flash('ok', 'Rubro actualizado.');
+    }
+    res.redirect('/admin/rubros');
+  });
+  // Mover un rubro una posición arriba o abajo en la lista.
+  r.post('/categorias/:id/mover', async (req, res) => {
+    const id = lib.toInt(req.params.id);
+    const dir = req.body.dir === 'up' ? -1 : 1;
+    const all = await db.all('SELECT id FROM categories ORDER BY sort, id');
+    const i = all.findIndex((c) => c.id === id), j = i + dir;
+    if (i >= 0 && j >= 0 && j < all.length) {
+      [all[i], all[j]] = [all[j], all[i]];
+      await db.tx(async (t) => { for (let k = 0; k < all.length; k++) await t.run('UPDATE categories SET sort = ? WHERE id = ?', k, all[k].id); });
+    }
+    res.redirect('/admin/rubros#c' + id);
+  });
+  // Eliminar un rubro. Los comercios y pedidos que lo usan se pasan a otro rubro (o quedan sin rubro).
+  r.post('/categorias/:id/borrar', async (req, res) => {
+    const id = lib.toInt(req.params.id);
+    const cat = id && await db.get('SELECT * FROM categories WHERE id = ?', id);
+    if (!cat) { req.flash('warn', 'Ese rubro ya no existe.'); return res.redirect('/admin/rubros'); }
+    const target = lib.toInt(req.body.move_to);
+    const dest = target && target !== id ? await db.get('SELECT id, name FROM categories WHERE id = ?', target) : null;
+    const used = (await db.get('SELECT COUNT(*)::int AS n FROM businesses WHERE category_id = ?', id)).n;
+    await db.tx(async (t) => {
+      await t.run('UPDATE businesses SET category_id = ? WHERE category_id = ?', dest ? dest.id : null, id);
+      await t.run('UPDATE requests SET category_id = ? WHERE category_id = ?', dest ? dest.id : null, id);
+      await t.run('DELETE FROM categories WHERE id = ?', id);
+    });
+    req.flash('ok', used
+      ? `Rubro “${cat.name}” eliminado. ${lib.plural(used, 'comercio pasó', 'comercios pasaron')} a ${dest ? '“' + dest.name + '”' : 'estado “sin rubro”'}.`
+      : `Rubro “${cat.name}” eliminado.`);
+    res.redirect('/admin/rubros');
+  });
+
+  // ---------- Datos de demostración (para mostrarle el sitio a comercios) ----------
+  r.post('/demo/cargar', async (req, res) => {
+    const out = await require('../../scripts/seed-demo').seed();
+    req.flash('ok', out.created ? `Listo: se cargaron ${lib.plural(out.created, 'comercio de ejemplo', 'comercios de ejemplo')}.` : 'Los comercios de ejemplo ya estaban cargados.');
+    res.redirect('/admin/ajustes#demo');
+  });
+  r.post('/demo/borrar', async (req, res) => {
+    const out = await require('../../scripts/seed-demo').clear();
+    req.flash('ok', `Se borraron ${lib.plural(out.removed, 'comercio de ejemplo', 'comercios de ejemplo')}.`);
+    res.redirect('/admin/ajustes#demo');
   });
 
   // ---------- Copia de seguridad (todas las tablas en JSON; las fotos ya están en R2) ----------

@@ -161,6 +161,22 @@ test('flujo completo', async () => {
     assert.equal((await shop.req('GET', p)).status, 200, p);
   }
 
+  for (const p of ['/panel/promociones', '/panel/pedidos', '/panel/productos/nuevo']) {
+    assert.equal((await shop.req('GET', p)).status, 200, p);
+  }
+  for (const p of ['/', '/buscar', '/promociones', '/busco-ya', '/comercios', '/como-funciona', '/terminos', '/privacidad', '/ingresar', '/registro', '/offline', `/p/${prod.id}`, '/buscar?q=zzzz-nada', reqUrl]) {
+    assert.equal((await vecino.req('GET', p)).status, 200, p);
+  }
+  assert.equal((await vecino.req('GET', '/no-existe')).status, 404);
+
+  // Precio rápido desde la lista de productos
+  t = await shop.csrf('/panel/productos');
+  r = await shop.req('POST', `/panel/productos/${prod.id}/precio`, { _csrf: t, price: '$ 99.500' });
+  assert.equal(r.status, 302);
+  assert.equal((await db.get('SELECT price FROM products WHERE id = ?', prod.id)).price, 99500);
+  r = await shop.req('POST', `/panel/productos/${prod.id}/precio`, { _csrf: t, price: '' });
+  assert.equal((await db.get('SELECT price FROM products WHERE id = ?', prod.id)).price, null);
+
   // 9) Un comerciante no puede entrar al admin
   r = await shop.req('GET', '/admin');
   assert.equal(r.status, 403);
@@ -174,4 +190,60 @@ test('respaldo: solo el admin puede descargarlo', async () => {
   await admin.req('POST', '/ingresar', { _csrf: t, email: 'admin@t.test', password: 'admin12345' });
   const r = await admin.req('GET', '/admin/respaldo');
   assert.equal(r.status, 200);
+});
+
+test('superadmin: crear, ordenar y borrar rubros (con reasignación)', async () => {
+  const admin = client();
+  let t = await admin.csrf('/ingresar');
+  await admin.req('POST', '/ingresar', { _csrf: t, email: 'admin@t.test', password: 'admin12345' });
+  let r = await admin.req('GET', '/admin/rubros');
+  assert.equal(r.status, 200);
+  assert.match(r.text, /Sí, borrar rubro/);
+
+  t = await admin.csrf('/admin/rubros');
+  r = await admin.req('POST', '/admin/categorias', { _csrf: t, name: 'Florería', icon: '💐' });
+  assert.equal(r.status, 302);
+  const flor = await db.get("SELECT * FROM categories WHERE name = 'Florería'");
+  assert.ok(flor);
+
+  // Renombrar y mover
+  await admin.req('POST', `/admin/categorias/${flor.id}`, { _csrf: t, name: 'Florería Test', icon: '🌸' });
+  assert.equal((await db.get('SELECT name FROM categories WHERE id = ?', flor.id)).name, 'Florería Test');
+  const before = (await db.all('SELECT id FROM categories ORDER BY sort, id')).map((c) => c.id);
+  await admin.req('POST', `/admin/categorias/${flor.id}/mover`, { _csrf: t, dir: 'up' });
+  const after = (await db.all('SELECT id FROM categories ORDER BY sort, id')).map((c) => c.id);
+  assert.notDeepEqual(before, after);
+
+  // Un comercio y un pedido en el rubro nuevo
+  const owner = await db.get("SELECT id FROM users WHERE email = 'ana@t.test'");
+  const bizId = (await db.get('SELECT id FROM businesses WHERE owner_id = ?', owner.id)).id;
+  const calzado = await db.get("SELECT id FROM categories WHERE slug = 'calzado'");
+  await db.run('UPDATE businesses SET category_id = ? WHERE id = ?', flor.id, bizId);
+  await db.run("INSERT INTO requests (category_id, description, name, whatsapp, token, expires_at) VALUES (?, 'Busco ramo de rosas', 'Lu', '5490000111', 'tok-test-flor', '2999-01-01')", flor.id);
+
+  // Borrar moviendo todo a otro rubro
+  r = await admin.req('POST', `/admin/categorias/${flor.id}/borrar`, { _csrf: t, move_to: String(calzado.id) });
+  assert.equal(r.status, 302);
+  assert.equal(await db.get('SELECT id FROM categories WHERE id = ?', flor.id), undefined);
+  assert.equal((await db.get('SELECT category_id FROM businesses WHERE id = ?', bizId)).category_id, calzado.id);
+  assert.equal((await db.get("SELECT category_id FROM requests WHERE token = 'tok-test-flor'")).category_id, calzado.id);
+
+  // Borrar sin destino: queda "sin rubro" y las páginas siguen funcionando
+  r = await admin.req('POST', `/admin/categorias/${calzado.id}/borrar`, { _csrf: t, move_to: '' });
+  assert.equal(r.status, 302);
+  assert.equal((await db.get('SELECT category_id FROM businesses WHERE id = ?', bizId)).category_id, null);
+  const slug = (await db.get('SELECT slug FROM businesses WHERE id = ?', bizId)).slug;
+  const vecino = client();
+  for (const p of ['/', '/buscar', `/c/${slug}`, '/busco-ya']) assert.equal((await vecino.req('GET', p)).status, 200, p);
+  const prodId = (await db.get('SELECT id FROM products WHERE business_id = ?', bizId)).id;
+  assert.equal((await vecino.req('GET', `/p/${prodId}`)).status, 200);
+  for (const p of ['/admin/rubros', '/admin/comercios', `/admin/comercios/${bizId}`]) assert.equal((await admin.req('GET', p)).status, 200, p);
+
+  // Datos de demostración: cargar y borrar
+  r = await admin.req('POST', '/admin/demo/cargar', { _csrf: t });
+  assert.equal(r.status, 302);
+  assert.ok((await db.get("SELECT COUNT(*)::int n FROM users WHERE email LIKE '%@demo.pulso'")).n > 5);
+  assert.equal((await vecino.req('GET', '/')).status, 200);
+  r = await admin.req('POST', '/admin/demo/borrar', { _csrf: t });
+  assert.equal((await db.get("SELECT COUNT(*)::int n FROM users WHERE email LIKE '%@demo.pulso'")).n, 0);
 });

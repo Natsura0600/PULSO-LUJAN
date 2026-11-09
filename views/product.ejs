@@ -3,7 +3,7 @@
 <% const deliveryText = { retiro: 'Retiro en el local', envio: 'Envío a domicilio', ambos: 'Retiro en el local o envío' }[p.delivery] || ''; %>
 <script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: p.name, description: p.description, image: p.photo ? abs(p.photo) : undefined, offers: p.price ? { '@type': 'Offer', price: p.price, priceCurrency: 'ARS', availability: p.availability === 'sin_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', seller: { '@type': 'Organization', name: p.business_name } } : undefined }).replace(/</g, '\\u003c') %></script>
 <div class="wrap section-sm">
-  <nav class="crumbs"><a href="/">Inicio</a> › <a href="/buscar?cat=<%= p.category_slug %>"><%= p.category_name %></a> › <a href="/c/<%= p.business_slug %>"><%= p.business_name %></a></nav>
+  <nav class="crumbs"><a href="/">Inicio</a> › <% if (p.category_slug) { %><a href="/buscar?cat=<%= p.category_slug %>"><%= p.category_name %></a> › <% } %><a href="/c/<%= p.business_slug %>"><%= p.business_name %></a></nav>
   <% if (!p.active) { %><div class="flash flash-warn">Este producto está pausado: solo vos lo ves.</div><% } %>
   <div class="product-layout">
     <div class="product-photo">

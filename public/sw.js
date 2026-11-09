@@ -1,6 +1,6 @@
 // Service worker: red primero para páginas, caché para estáticos, página offline.
-const CACHE = 'pulso-v1';
-const STATIC = ['/css/styles.css?v=1', '/js/app.js?v=1', '/icons/icon.svg', '/icons/icon-192.png', '/offline'];
+const CACHE = 'pulso-v2';
+const STATIC = ['/css/styles.css?v=3', '/js/app.js?v=3', '/icons/icon.svg', '/icons/icon-192.png', '/offline'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(STATIC)).then(() => self.skipWaiting()));

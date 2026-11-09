@@ -28,6 +28,13 @@ app.use((req, res, next) => {
 
 // Archivos estáticos (en Vercel los sirve la CDN directamente desde /public)
 app.use('/uploads', express.static(config.UPLOAD_DIR, { maxAge: '30d', immutable: true }));
+// Fotos guardadas en Postgres (cuando no hay bucket S3/R2): se sirven con caché larga.
+app.get('/uploads/:name', async (req, res, next) => {
+  if (!config.DATABASE_URL || config.S3.bucket || !/^[\w.-]+\.webp$/.test(req.params.name)) return next();
+  const img = await db.get('SELECT data, content_type FROM images WHERE name = ?', req.params.name);
+  if (!img) return next();
+  res.set({ 'Content-Type': img.content_type, 'Cache-Control': 'public, max-age=31536000, immutable' }).send(img.data);
+});
 app.use(express.static(path.join(config.ROOT, 'public'), { maxAge: config.IS_PROD ? '1d' : 0 }));
 app.use(express.urlencoded({ extended: false, limit: '200kb' }));
 

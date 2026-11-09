@@ -1,0 +1,60 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <div class="sec-head">
+    <h2>Rubros <span class="muted">(<%= list.length %>)</span></h2>
+    <a class="btn btn-ghost btn-sm" href="/admin/ajustes">← Ajustes</a>
+  </div>
+  <p class="muted">Ordená los rubros con las flechas, cambiales el nombre o el ícono, o borralos. Si un rubro tiene comercios o pedidos, elegís a cuál rubro pasan.</p>
+
+  <div class="card pad cat-admin">
+    <% list.forEach(function(c, i){ %>
+    <div class="cat-row" id="c<%= c.id %>">
+      <div class="cat-move">
+        <form method="post" action="/admin/categorias/<%= c.id %>/mover"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="dir" value="up"><button class="btn btn-ghost btn-sm" <%= i === 0 ? 'disabled' : '' %> aria-label="Subir <%= c.name %>">↑</button></form>
+        <form method="post" action="/admin/categorias/<%= c.id %>/mover"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="dir" value="down"><button class="btn btn-ghost btn-sm" <%= i === list.length - 1 ? 'disabled' : '' %> aria-label="Bajar <%= c.name %>">↓</button></form>
+      </div>
+      <form method="post" action="/admin/categorias/<%= c.id %>" class="inline-form cat-edit">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input class="input input-icon" name="icon" value="<%= c.icon %>" aria-label="Ícono">
+        <input class="input" name="name" value="<%= c.name %>" aria-label="Nombre" required>
+        <button class="btn btn-ghost btn-sm">Guardar</button>
+      </form>
+      <span class="cat-count small muted"><%= c.businesses %> comercio<%= c.businesses === 1 ? '' : 's' %> · <%= c.requests %> pedido<%= c.requests === 1 ? '' : 's' %></span>
+      <button type="button" class="btn btn-ghost btn-sm danger" data-open-dialog="del<%= c.id %>">Borrar</button>
+
+      <dialog class="dlg" id="del<%= c.id %>">
+        <form method="post" action="/admin/categorias/<%= c.id %>/borrar">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <h3>¿Borrar el rubro “<%= c.name %>”?</h3>
+          <% if (c.businesses || c.requests) { %>
+          <p>Tiene <strong><%= c.businesses %></strong> comercio<%= c.businesses === 1 ? '' : 's' %> y <strong><%= c.requests %></strong> pedido<%= c.requests === 1 ? '' : 's' %> BUSCO YA. No se borran: pasan al rubro que elijas.</p>
+          <label class="field"><span>Mover a</span>
+            <select name="move_to">
+              <option value="">Sin rubro</option>
+              <% list.forEach(function(o){ if (o.id !== c.id) { %><option value="<%= o.id %>"><%= o.icon %> <%= o.name %></option><% } }) %>
+            </select>
+          </label>
+          <% } else { %><p>No tiene comercios ni pedidos. Se borra sin más.</p><% } %>
+          <div class="form-actions">
+            <button class="btn btn-primary danger-bg">Sí, borrar rubro</button>
+            <button type="button" class="btn btn-ghost" data-close-dialog>Cancelar</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+    <% }) %>
+    <% if (!list.length) { %><p class="muted">Todavía no hay rubros. Agregá el primero abajo.</p><% } %>
+  </div>
+
+  <form method="post" action="/admin/categorias" class="card form-card" style="margin-top:16px">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Agregar rubro</h2>
+    <div class="inline-form">
+      <input class="input input-icon" name="icon" placeholder="🏪" aria-label="Ícono">
+      <input class="input" name="name" placeholder="Nombre del rubro" required aria-label="Nombre">
+      <button class="btn btn-accent">Agregar</button>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

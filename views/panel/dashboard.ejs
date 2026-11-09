@@ -5,7 +5,8 @@
   <% if (pending.length) { %>
   <div class="card checklist">
     <h2>Completá tu ficha (<%= checklist.length - pending.length %>/<%= checklist.length %>)</h2>
-    <p class="muted small">Las fichas completas reciben muchas más consultas.</p>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="<%= checklist.length %>" aria-valuenow="<%= checklist.length - pending.length %>"><span style="width:<%= Math.round((checklist.length - pending.length) / checklist.length * 100) %>%"></span></div>
+    <p class="muted small">Las fichas completas reciben muchas más consultas. Tocá un paso para hacerlo.</p>
     <ul>
       <% checklist.forEach(function(c){ %><li class="<%= c.ok ? 'done' : '' %>"><a href="<%= c.href %>"><%= c.ok ? '✓' : '○' %> <%= c.label %></a></li><% }) %>
     </ul>
@@ -17,6 +18,8 @@
     <a class="quick-btn" href="/panel/pedidos"><span>⚡</span>Pedidos<% if (openReqs) { %> <b class="badge"><%= openReqs %></b><% } %></a>
     <a class="quick-btn" href="/panel/promociones"><span>🏷️</span>Nueva promo</a>
     <a class="quick-btn" href="/panel/qr" target="_blank"><span>▦</span>QR vidriera</a>
+    <button type="button" class="quick-btn" data-share data-title="<%= biz.name %> en Pulso Luján" data-url="<%= (typeof baseUrl !== 'undefined' ? baseUrl : '') + '/c/' + biz.slug %>"><span>↗</span>Compartir mi ficha</button>
+    <% if (settings.contact_whatsapp) { %><a class="quick-btn" target="_blank" rel="noopener" href="<%= waLink(settings.contact_whatsapp, 'Hola Pulso! Soy ' + biz.name + ' y necesito ayuda con mi panel.') %>"><span>💬</span>Pedir ayuda</a><% } %>
   </div>
 
   <div class="sec-head"><h2>Resultados</h2>

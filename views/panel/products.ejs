@@ -17,6 +17,13 @@
       <div class="pitem-info">
         <a href="/panel/productos/<%= p.id %>"><strong><%= p.name %></strong></a>
         <span class="price"><%= p.price ? fmtPrice(p.price) : 'Consultar' %></span>
+        <details class="qprice"><summary>Cambiar precio</summary>
+          <form method="post" action="/panel/productos/<%= p.id %>/precio" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <input class="input input-sm" name="price" inputmode="numeric" value="<%= p.price || '' %>" placeholder="Vacío = Consultar" aria-label="Nuevo precio">
+            <button class="btn btn-accent btn-sm">Guardar</button>
+          </form>
+        </details>
         <span class="small muted"><%= p.active ? 'Publicado' : 'Pausado' %> · actualizado <%= timeAgo(p.updated_at) %></span>
       </div>
       <div class="pitem-actions">

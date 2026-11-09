@@ -63,7 +63,7 @@ module.exports = function merchantRoutes(upload, checkCsrf) {
       { ok: !!biz.logo || !!biz.cover, label: 'Logo o foto de portada', href: '/panel/ficha' },
       { ok: productCount >= 3, label: 'Al menos 3 productos publicados', href: '/panel/productos/nuevo' },
     ];
-    res.render('panel/dashboard', { title: 'Mi panel', days, counts, clicks, daily, topProducts, redemptions, proposalsSent, checklist, productCount });
+    res.render('panel/dashboard', { title: 'Mi panel', lib_hour: lib.nowAR().time.slice(0, 2), days, counts, clicks, daily, topProducts, redemptions, proposalsSent, checklist, productCount });
   });
 
   // ---------- Ficha ----------
@@ -173,10 +173,24 @@ module.exports = function merchantRoutes(upload, checkCsrf) {
     if (p) {
       if (req.body.availability && AVAIL.includes(req.body.availability)) {
         await db.run(`UPDATE products SET availability = ?, updated_at = ${NOW} WHERE id = ?`, req.body.availability, p.id);
+        req.flash('ok', `“${p.name}”: ${{ disponible: 'disponible', pocas: 'últimas unidades', a_pedido: 'a pedido', sin_stock: 'sin stock' }[req.body.availability]}.`);
       } else {
         await db.run(`UPDATE products SET active = ?, updated_at = ${NOW} WHERE id = ?`, p.active ? 0 : 1, p.id);
+        req.flash('ok', p.active ? `“${p.name}” quedó pausado: ya no se ve en Pulso.` : `“${p.name}” volvió a publicarse.`);
       }
       await touch(req.business.id);
+    }
+    res.redirect('/panel/productos');
+  });
+  // Cambio rápido de precio desde la lista (sin abrir el formulario completo).
+  r.post('/productos/:id/precio', async (req, res) => {
+    const id = lib.toInt(req.params.id);
+    const p = id && await db.get('SELECT * FROM products WHERE id = ? AND business_id = ?', id, req.business.id);
+    if (p) {
+      const price = lib.toInt(req.body.price);
+      await db.run(`UPDATE products SET price = ?, updated_at = ${NOW} WHERE id = ?`, price, p.id);
+      await touch(req.business.id);
+      req.flash('ok', price ? `Precio de “${p.name}” actualizado a ${lib.fmtPrice(price)}.` : `“${p.name}” ahora figura como “Consultar precio”.`);
     }
     res.redirect('/panel/productos');
   });

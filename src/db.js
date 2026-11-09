@@ -201,6 +201,13 @@ CREATE TABLE IF NOT EXISTS payments (
   note TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT ${NOW}
 );
+-- Fotos guardadas en la propia base cuando no hay un bucket S3/R2 configurado (así el sitio funciona en Vercel solo con Neon).
+CREATE TABLE IF NOT EXISTS images (
+  name TEXT PRIMARY KEY,
+  data BYTEA NOT NULL,
+  content_type TEXT NOT NULL DEFAULT 'image/webp',
+  created_at TEXT NOT NULL DEFAULT ${NOW}
+);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS sessions (sid TEXT PRIMARY KEY, sess TEXT NOT NULL, expires BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS leads (

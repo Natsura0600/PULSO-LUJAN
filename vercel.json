@@ -15,7 +15,7 @@
   },
   "headers": [
     {
-      "source": "/(css|js|icons)/(.*)",
+      "source": "/(css|js|icons|fonts)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

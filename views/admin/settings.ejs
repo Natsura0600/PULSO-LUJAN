@@ -29,20 +29,16 @@
     <div>
       <div class="card pad" id="rubros">
         <h2>Rubros</h2>
-        <% categories.forEach(function(c){ %>
-        <form method="post" action="/admin/categorias/<%= c.id %>" class="inline-form cat-edit">
-          <input type="hidden" name="_csrf" value="<%= csrf %>">
-          <input class="input input-icon" name="icon" value="<%= c.icon %>" aria-label="Ícono">
-          <input class="input" name="name" value="<%= c.name %>" aria-label="Nombre">
-          <button class="btn btn-ghost btn-sm">Guardar</button>
-        </form>
-        <% }) %>
-        <form method="post" action="/admin/categorias" class="inline-form cat-edit">
-          <input type="hidden" name="_csrf" value="<%= csrf %>">
-          <input class="input input-icon" name="icon" placeholder="🏪" aria-label="Ícono">
-          <input class="input" name="name" placeholder="Nuevo rubro" required aria-label="Nombre">
-          <button class="btn btn-primary btn-sm">Agregar</button>
-        </form>
+        <p class="small muted">Agregá, ordená, renombrá o borrá los rubros del sitio.</p>
+        <a class="btn btn-primary" href="/admin/rubros">Administrar rubros</a>
+      </div>
+      <div class="card pad" id="demo">
+        <h2>Datos de demostración</h2>
+        <p class="small muted">Carga 11 comercios de ejemplo con productos, promos y pedidos para mostrarle el sitio a un cliente. Los borrás con un clic y no tocan tus comercios reales.</p>
+        <div class="btn-row">
+          <form method="post" action="/admin/demo/cargar" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-accent">Cargar demo</button></form>
+          <form method="post" action="/admin/demo/borrar" class="inline" data-confirm="¿Borrar todos los datos de demostración?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost danger">Borrar demo</button></form>
+        </div>
       </div>
       <div class="card pad">
         <h2>Copia de seguridad</h2>

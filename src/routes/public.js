@@ -9,20 +9,27 @@ module.exports = function publicRoutes(upload, checkCsrf) {
 
   // ---------- Inicio ----------
   r.get('/', async (req, res) => {
-    const [featured, promos, products, all, stats1, stats2, openRequests] = await Promise.all([
+    const [featured, promos, products, all, stats1, stats2, stats3, openRequests, catStats, zoneList] = await Promise.all([
       Q.sponsored({ limit: 6 }),
       Q.activePromotions({ limit: 8 }),
       Q.searchProducts({ limit: 12 }),
       Q.searchBusinesses({ limit: 200 }),
       db.get("SELECT COUNT(*) n FROM businesses WHERE status = 'approved'"),
       db.get("SELECT COUNT(*) n FROM products p JOIN businesses b ON b.id = p.business_id WHERE p.active = 1 AND b.status = 'approved'"),
+      db.get("SELECT COUNT(*) n FROM requests WHERE status = 'open' AND expires_at > ?", lib.sqlNow()),
       db.all(`SELECT r.id, r.description, r.zone, r.budget, r.created_at, c.name AS category_name, c.icon AS category_icon
         FROM requests r LEFT JOIN categories c ON c.id = r.category_id
         WHERE r.status = 'open' AND r.expires_at > ? ORDER BY r.created_at DESC LIMIT 4`, lib.sqlNow()),
+      db.all(`SELECT c.slug, c.name, c.icon, COUNT(b.id)::int AS n FROM categories c
+        LEFT JOIN businesses b ON b.category_id = c.id AND b.status = 'approved' GROUP BY c.id ORDER BY c.sort, c.id`),
+      Q.zones(),
     ]);
     const openNow = all.filter((b) => b.open).slice(0, 8);
     const recent = all.slice(0, 8);
-    res.render('home', { title: '', featured, promos, products, openNow, recent, stats: { businesses: stats1.n, products: stats2.n }, openRequests });
+    res.render('home', {
+      title: '', featured, promos, products, openNow, recent, openRequests, catStats, zoneList: zoneList.slice(0, 12),
+      stats: { businesses: stats1.n, products: stats2.n, requests: stats3.n, openNow: all.filter((b) => b.open).length },
+    });
   });
 
   // ---------- Buscador ----------

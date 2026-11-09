@@ -5,6 +5,7 @@ const sharp = require('sharp');
 const session = require('express-session');
 const { db } = require('./db');
 const config = require('./config');
+const { icon } = require('./icons');
 
 // ---------- Fechas (hora de Argentina) ----------
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -94,6 +95,15 @@ function hoursRows(hoursJson) {
     text: (hours[d] || []).filter((r) => r[0] && r[1]).map((r) => `${r[0]} a ${r[1]}`).join(' y ') || 'Cerrado',
   }));
 }
+
+
+// ---------- Textos para las vistas ----------
+function initials(s) {
+  const w = String(s || '').trim().split(/\s+/).filter(Boolean);
+  return ((w[0] || '?')[0] + (w.length > 1 ? w[1][0] : '')).toUpperCase();
+}
+function plural(n, one, many) { return `${n} ${n === 1 ? one : many}`; }
+function firstName(s) { return String(s || '').trim().split(/\s+/)[0] || ''; }
 
 // ---------- Planes ----------
 function effectivePlan(biz) {
@@ -191,6 +201,8 @@ function s3Client() {
   }
   return s3;
 }
+// Orden de preferencia: bucket S3/R2 → tabla "images" de Postgres (Neon) → carpeta local (desarrollo con PGlite).
+const useDbImages = () => !config.S3.bucket && !!config.DATABASE_URL;
 async function storeFile(name, buf) {
   if (config.S3.bucket) {
     const { PutObjectCommand } = require('@aws-sdk/client-s3');
@@ -199,6 +211,10 @@ async function storeFile(name, buf) {
       CacheControl: 'public, max-age=31536000, immutable',
     }));
     return `${config.S3.publicUrl}/uploads/${name}`;
+  }
+  if (useDbImages()) {
+    await db.run('INSERT INTO images (name, data) VALUES (?, ?) ON CONFLICT (name) DO UPDATE SET data = excluded.data', name, buf);
+    return '/uploads/' + name;
   }
   fs.mkdirSync(config.UPLOAD_DIR, { recursive: true });
   await fs.promises.writeFile(path.join(config.UPLOAD_DIR, name), buf);
@@ -222,8 +238,11 @@ function deleteImage(url) {
   if (!url) return;
   const files = /-o\.webp$/.test(url) ? [url, thumb(url)] : [url];
   for (const u of files) {
-    if (u.startsWith('/uploads/')) fs.promises.unlink(path.join(config.UPLOAD_DIR, path.basename(u))).catch(() => {});
-    else if (config.S3.bucket && config.S3.publicUrl && u.startsWith(config.S3.publicUrl + '/')) {
+    if (u.startsWith('/uploads/')) {
+      const name = path.basename(u);
+      fs.promises.unlink(path.join(config.UPLOAD_DIR, name)).catch(() => {});
+      if (useDbImages()) db.run('DELETE FROM images WHERE name = ?', name).catch(() => {});
+    } else if (config.S3.bucket && config.S3.publicUrl && u.startsWith(config.S3.publicUrl + '/')) {
       const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
       s3Client().send(new DeleteObjectCommand({ Bucket: config.S3.bucket, Key: u.slice(config.S3.publicUrl.length + 1) })).catch(() => {});
     }
@@ -267,9 +286,37 @@ function rateLimit(key, max, windowMs) {
 }
 setInterval(() => { const now = Date.now(); for (const [k, v] of buckets) if (!v.some((t) => now - t < 3600_000)) buckets.delete(k); }, 600_000).unref();
 
+
+// Menú de los paneles (comercio y superadmin): lo comparten el armazón y la barra inferior.
+function panelNav(path, counts = {}) {
+  const admin = String(path).startsWith('/admin');
+  const here = (href) => (href === '/panel' || href === '/admin' ? path === href || path === href + '/' : String(path).startsWith(href));
+  const items = admin ? [
+    ['/admin', 'Resumen', 'home'],
+    ['/admin/comercios', 'Comercios', 'store', counts.pendingCount],
+    ['/admin/pedidos', 'BUSCO YA', 'zap'],
+    ['/admin/rubros', 'Rubros', 'grid'],
+    ['/admin/reportes', 'Reportes', 'alert', counts.reportCount],
+    ['/admin/contactos', 'Contactos', 'mail'],
+    ['/admin/ajustes', 'Ajustes', 'sliders'],
+  ] : [
+    ['/panel', 'Resumen', 'home'],
+    ['/panel/ficha', 'Mi ficha', 'store'],
+    ['/panel/productos', 'Productos', 'box'],
+    ['/panel/promociones', 'Promociones', 'tag'],
+    ['/panel/pedidos', 'Pedidos', 'zap', counts.openReqs],
+    ['/panel/plan', 'Mi plan', 'star'],
+    ['/panel/qr', 'QR vidriera', 'qr'],
+    ['/panel/cuenta', 'Mi cuenta', 'user'],
+  ];
+  const tabs = admin ? [items[0], items[1], items[2], items[4]] : [items[0], items[2], null, items[4]];
+  return { admin, here, items, tabs };
+}
+
 module.exports = {
+  panelNav,
   DAYS, DAY_ORDER, nowAR, todayAR, sqlNow, sqlPlusDays, sqlDaysAgo, absUrl, fmtDate, fmtDateTime, timeAgo, fmtPrice,
   parseHours, isOpenNow, hasHours, hoursRows, effectivePlan, planLimits, PLAN_NAMES,
   slugify, uniqueSlug, normPhone, waLink, safeUrl, igUrl, mapsLink, mapsEmbed, toInt, clip, token,
-  saveImage, deleteImage, thumb, track, DbStore, rateLimit,
+  saveImage, deleteImage, thumb, track, DbStore, rateLimit, icon, initials, plural, firstName,
 };

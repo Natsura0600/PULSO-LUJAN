@@ -7,7 +7,7 @@
     <div class="row2">
       <label class="field"><span>Nombre del comercio *</span><input name="name" required maxlength="80" value="<%= biz.name %>"></label>
       <label class="field"><span>Rubro principal</span>
-        <select name="category_id"><% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= c.id === biz.category_id ? 'selected' : '' %>><%= c.icon %> <%= c.name %></option><% }) %></select>
+        <select name="category_id"><% if (!biz.category_id) { %><option value="">Elegí un rubro…</option><% } %><% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= c.id === biz.category_id ? 'selected' : '' %>><%= c.icon %> <%= c.name %></option><% }) %></select>
         <small>Recibís los pedidos BUSCO YA de este rubro.</small>
       </label>
     </div>
