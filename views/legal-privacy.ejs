@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<div class="wrap section-sm narrow prose-page">
+  <h1 class="page-title">Política de privacidad</h1>
+  <p class="muted small">Última actualización: noviembre de 2026.</p>
+  <h2>Qué datos recolectamos</h2>
+  <ul>
+    <li><strong>Vecinos que publican en BUSCO YA:</strong> nombre, número de WhatsApp, descripción del pedido, zona y foto opcional.</li>
+    <li><strong>Comercios:</strong> datos de la cuenta (nombre, email, contraseña cifrada) y la información pública de la ficha.</li>
+    <li><strong>Uso del sitio:</strong> conteos anónimos de visitas y clics a WhatsApp, web o mapas de cada comercio, para que puedan medir resultados. No usamos cookies publicitarias; solo una cookie técnica de sesión.</li>
+  </ul>
+  <h2>Para qué los usamos</h2>
+  <p>Para hacer funcionar la plataforma, prevenir abusos y mostrar métricas agregadas a los comercios. El WhatsApp de los vecinos <strong>no se comparte con los comercios</strong>: el vecino decide a quién escribir. La descripción de un pedido puede mostrarse públicamente sin datos personales.</p>
+  <h2>Conservación y derechos</h2>
+  <p>Los pedidos vencen automáticamente. Podés solicitar el acceso, rectificación o eliminación de tus datos en cualquier momento escribiéndonos<%= settings.contact_email ? ' a ' + settings.contact_email : '' %>. Conforme a la Ley 25.326, la Agencia de Acceso a la Información Pública es el órgano de control y atiende denuncias y reclamos relacionados con el incumplimiento de las normas sobre protección de datos personales.</p>
+  <h2>Seguridad</h2>
+  <p>Las contraseñas se guardan cifradas y el acceso a los datos está restringido a la administración de Pulso.</p>
+</div>
+<%- include('partials/footer') %>

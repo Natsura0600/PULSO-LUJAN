@@ -1,0 +1,10 @@
+<a class="card prod-card" href="/p/<%= p.id %>">
+  <div class="prod-img"><% if (p.photo) { %><img src="<%= thumb(p.photo) %>" alt="<%= p.name %>" loading="lazy"><% } else { %><span class="noimg">📦</span><% } %>
+    <% if (p.availability === 'sin_stock') { %><span class="tag tag-closed">Sin stock</span><% } else if (p.availability === 'pocas') { %><span class="tag tag-warn">Últimas unidades</span><% } else if (p.availability === 'a_pedido') { %><span class="tag">A pedido</span><% } %>
+  </div>
+  <div class="prod-body">
+    <h3><%= p.name %></h3>
+    <p class="price"><%= p.price ? fmtPrice(p.price) : 'Consultar precio' %><% if (p.price_note) { %> <span class="muted small"><%= p.price_note %></span><% } %></p>
+    <p class="muted small ellipsis"><%= p.business_name %><%= p.zone ? ' · ' + p.zone : '' %></p>
+  </div>
+</a>

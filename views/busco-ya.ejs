@@ -1,0 +1,91 @@
+<%- include('partials/header') %>
+<section class="busco-hero">
+  <div class="wrap">
+    <p class="eyebrow light">BUSCO YA</p>
+    <h1>Publicá lo que necesitás.<br>Los comercios de Luján te responden.</h1>
+    <p class="hero-sub">Gratis para vecinos. Tus datos de contacto no se muestran a los comercios: vos elegís a quién escribirle.</p>
+  </div>
+</section>
+
+<div class="wrap busco-layout">
+  <form class="card form-card" method="post" action="/busco-ya" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input type="text" name="website_hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <% if (error) { %><div class="flash flash-warn"><%= error %></div><% } %>
+
+    <label class="field"><span>¿Qué estás buscando? *</span>
+      <textarea name="description" rows="4" required minlength="8" maxlength="600" placeholder="Ej.: Busco zapatillas running talle 42, hasta $100.000, para retirar hoy."><%= form.description || query.q || '' %></textarea>
+    </label>
+    <label class="field"><span>Rubro *</span>
+      <select name="category_id" required>
+        <option value="">Elegí un rubro</option>
+        <% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= String(form.category_id) === String(c.id) ? 'selected' : '' %>><%= c.icon %> <%= c.name %></option><% }) %>
+      </select>
+    </label>
+    <div class="row2">
+      <label class="field"><span>Presupuesto aproximado</span>
+        <input name="budget" inputmode="numeric" placeholder="$ (opcional)" value="<%= form.budget || '' %>">
+      </label>
+      <label class="field"><span>¿Para cuándo?</span>
+        <select name="deadline">
+          <% ['Hoy', 'Esta semana', 'Este mes', 'Sin apuro'].forEach(function(d){ %><option <%= form.deadline === d ? 'selected' : '' %>><%= d %></option><% }) %>
+        </select>
+      </label>
+    </div>
+    <label class="field"><span>Zona o barrio</span>
+      <input name="zone" list="zones" placeholder="Ej.: Centro" value="<%= form.zone || '' %>">
+      <datalist id="zones"><% zones.forEach(function(z){ %><option value="<%= z %>"><% }) %></datalist>
+    </label>
+    <label class="field"><span>Foto de referencia (opcional)</span>
+      <input type="file" name="photo" accept="image/*">
+    </label>
+    <div class="row2">
+      <label class="field"><span>Tu nombre *</span>
+        <input name="name" required maxlength="60" value="<%= form.name || '' %>" autocomplete="given-name">
+      </label>
+      <label class="field"><span>Tu WhatsApp *</span>
+        <input name="whatsapp" required inputmode="tel" placeholder="2323 123456" value="<%= form.whatsapp || '' %>" autocomplete="tel">
+      </label>
+    </div>
+    <p class="fine-note">Tu WhatsApp no se muestra a los comercios; lo usamos solo para limitar abusos. La descripción del pedido puede verse públicamente sin tus datos.</p>
+    <input type="hidden" name="days" value="7">
+    <label class="check"><input type="checkbox" name="acepto" value="1" required> Acepto los <a href="/terminos" target="_blank">términos</a> y la <a href="/privacidad" target="_blank">política de privacidad</a>.</label>
+    <button class="btn btn-accent btn-lg btn-block">Publicar pedido</button>
+  </form>
+
+  <aside>
+    <% if (mine.length) { %>
+    <div class="side-card">
+      <h3>Mis pedidos</h3>
+      <ul class="plain">
+        <% mine.forEach(function(m){ %>
+        <li><a href="/busco-ya/p/<%= m.token %>"><%= m.description.slice(0, 60) %><%= m.description.length > 60 ? '…' : '' %></a>
+          <span class="small muted">· <%= m.proposals %> propuesta<%= m.proposals === 1 ? '' : 's' %><%= m.status === 'closed' ? ' · cerrado' : '' %></span></li>
+        <% }) %>
+      </ul>
+    </div>
+    <% } %>
+    <div class="side-card">
+      <h3>Cómo funciona</h3>
+      <ol class="mini-steps">
+        <li><strong>Publicás tu pedido</strong> con detalle, presupuesto y plazo.</li>
+        <li><strong>Lo reciben solo los comercios adheridos del rubro.</strong></li>
+        <li><strong>Te envían propuestas</strong> con precio, foto, disponibilidad y entrega.</li>
+        <li><strong>Comparás y escribís</strong> al que más te convenga por WhatsApp.</li>
+      </ol>
+      <p class="fine-note">El stock y los precios son declarados por cada comercio. Pulso no vende ni cobra comisión: la compra la coordinás con el negocio.</p>
+    </div>
+    <% if (recent.length) { %>
+    <div class="side-card">
+      <h3>Pedidos recientes</h3>
+      <ul class="plain">
+        <% recent.forEach(function(rq){ %>
+        <li><%= rq.category_icon %> <%= rq.description.slice(0, 70) %><%= rq.description.length > 70 ? '…' : '' %>
+          <span class="small muted">· <%= rq.proposals %> propuesta<%= rq.proposals === 1 ? '' : 's' %></span></li>
+        <% }) %>
+      </ul>
+    </div>
+    <% } %>
+  </aside>
+</div>
+<%- include('partials/footer') %>

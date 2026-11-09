@@ -1,0 +1,35 @@
+<%- include('head') %>
+<body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+<a class="skip" href="#main">Saltar al contenido</a>
+<% if (typeof actingAs !== 'undefined' && actingAs) { %>
+<div class="acting">Estás editando como <strong><%= actingAs.name %></strong>
+  <form method="post" action="/admin/dejar-de-actuar"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">Volver al admin</button></form>
+</div>
+<% } %>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a href="/" class="brand" aria-label="Pulso Luján, inicio">
+      <span class="dot"></span><span class="brand-name">PULSO<span class="brand-dot">.</span></span><span class="brand-city">LUJÁN</span>
+    </a>
+    <form class="top-search" action="/buscar" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input name="q" value="<%= typeof q !== 'undefined' ? q : '' %>" placeholder="Ropa, comida, servicios…" aria-label="Buscar" autocomplete="off">
+    </form>
+    <nav class="top-links">
+      <a href="/buscar" class="<%= path.startsWith('/buscar') ? 'on' : '' %>">Explorar</a>
+      <a href="/promociones" class="<%= path.startsWith('/promociones') ? 'on' : '' %>">Promos</a>
+      <a href="/busco-ya" class="busco <%= path.startsWith('/busco-ya') ? 'on' : '' %>">BUSCO YA</a>
+      <% if (user && user.role === 'admin') { %>
+        <a href="/admin" class="btn btn-sm btn-ghost">Admin</a>
+      <% } else if (user) { %>
+        <a href="/panel" class="btn btn-sm btn-ghost">Mi panel</a>
+      <% } else { %>
+        <a href="/comercios" class="btn btn-sm btn-ghost">Soy comercio</a>
+      <% } %>
+    </nav>
+  </div>
+</header>
+<% if (flash) { %>
+<div class="wrap"><div class="flash flash-<%= flash.type %>" role="status"><%= flash.msg %></div></div>
+<% } %>
+<main id="main">

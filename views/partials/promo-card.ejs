@@ -1,0 +1,14 @@
+<article class="card promo-card">
+  <% if (pr.photo) { %><img class="promo-img" src="<%= thumb(pr.photo) %>" alt="" loading="lazy"><% } %>
+  <div class="promo-body">
+    <p class="eyebrow"><%= pr.category_icon || '🏷️' %> <a href="/c/<%= pr.business_slug %>"><%= pr.business_name %></a></p>
+    <h3><%= pr.title %></h3>
+    <% if (pr.description) { %><p><%= pr.description %></p><% } %>
+    <p class="small muted"><strong>Condiciones:</strong> <%= pr.conditions %></p>
+    <div class="promo-foot">
+      <span class="small">Vigente hasta <strong><%= fmtDate(pr.ends_at) %></strong></span>
+      <% if (pr.code) { %><span class="code" title="Mostralo en el local">Código: <strong><%= pr.code %></strong></span><% } %>
+    </div>
+    <% if (pr.whatsapp) { %><a class="btn btn-wa btn-sm btn-block" href="/go/whatsapp/<%= pr.business_id %>" rel="nofollow">Consultar por WhatsApp</a><% } %>
+  </div>
+</article>

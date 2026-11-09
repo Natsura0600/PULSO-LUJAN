@@ -1,0 +1,56 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <div class="quick">
+    <a class="quick-btn" href="/admin/comercios/nuevo"><span>＋</span>Alta de comercio</a>
+    <a class="quick-btn" href="/admin/comercios?estado=pending"><span>✓</span>Aprobar fichas<% if (stats.pending) { %> <b class="badge"><%= stats.pending %></b><% } %></a>
+    <a class="quick-btn" href="/admin/pedidos"><span>⚡</span>Pedidos BUSCO YA</a>
+    <a class="quick-btn" href="/qr-general.svg" download="qr-pulso.svg"><span>▦</span>QR general</a>
+  </div>
+
+  <h2 class="h2-sec">Indicadores (últimos 30 días)</h2>
+  <div class="kpis">
+    <div class="kpi"><span>Comercios activos</span><strong><%= stats.activeBiz %></strong><small>de <%= stats.approved %> publicados · meta piloto 20–30</small></div>
+    <div class="kpi"><span>Solicitudes BUSCO YA</span><strong><%= stats.req30 %></strong></div>
+    <div class="kpi"><span>Tasa de respuesta</span><strong><%= stats.req30 ? Math.round(stats.ans30 / stats.req30 * 100) : 0 %>%</strong><small>pedidos con al menos 1 propuesta</small></div>
+    <div class="kpi"><span>Contactos y derivaciones</span><strong><%= stats.contacts30 %></strong><small>clics a WhatsApp, web, mapa…</small></div>
+    <div class="kpi"><span>Visitas a fichas/productos</span><strong><%= stats.views30 %></strong></div>
+    <div class="kpi"><span>Canjes verificados</span><strong><%= stats.redemptions30 %></strong></div>
+    <div class="kpi"><span>Planes pagos vigentes</span><strong><%= stats.paid %></strong><small>incluye pruebas gratuitas</small></div>
+    <div class="kpi"><span>Facturación mensual estimada</span><strong><%= fmtPrice(stats.mrr) %></strong><small>comercios que ya pagaron y siguen vigentes</small></div>
+    <div class="kpi"><span>Renovación</span><strong><%= stats.everPaid ? Math.round(stats.stillPaying / stats.everPaid * 100) : 0 %>%</strong><small><%= stats.stillPaying %> de <%= stats.everPaid %> que pagaron siguen vigentes</small></div>
+  </div>
+
+  <div class="panel-grid">
+    <div class="card pad">
+      <h3>BUSCO YA por semana</h3>
+      <% if (weekly.length) { %>
+      <table class="table"><tr><th>Semana</th><th class="num">Pedidos</th><th class="num">Con respuesta</th></tr>
+        <% weekly.forEach(function(w){ %><tr><td><%= w.w %></td><td class="num"><%= w.n %></td><td class="num"><%= w.answered %></td></tr><% }) %>
+      </table>
+      <% } else { %><p class="muted">Sin pedidos todavía.</p><% } %>
+    </div>
+    <div class="card pad">
+      <h3>Planes que vencen en 7 días</h3>
+      <% if (expiring.length) { %>
+      <table class="table">
+        <% expiring.forEach(function(b){ %><tr><td><a href="/admin/comercios/<%= b.id %>"><%= b.name %></a><br><span class="small muted"><%= PLAN_NAMES[b.plan] %> · vence <%= fmtDate(b.plan_until) %></span></td>
+          <td><% if (b.whatsapp) { %><a class="btn btn-wa btn-sm" target="_blank" rel="noopener" href="<%= waLink(b.whatsapp, 'Hola ' + b.name + '! Te escribo de Pulso Luján: tu plan ' + PLAN_NAMES[b.plan] + ' vence el ' + fmtDate(b.plan_until) + '. ¿Querés renovarlo?') %>">Avisar</a><% } %></td></tr><% }) %>
+      </table>
+      <% } else { %><p class="muted">Ninguno.</p><% } %>
+    </div>
+    <div class="card pad">
+      <h3>Últimos contactos de comercios</h3>
+      <% if (leads.length) { %>
+      <ul class="plain"><% leads.forEach(function(l){ %><li><strong><%= l.name %></strong> <%= l.business ? '· ' + l.business : '' %> <span class="small muted">· <%= timeAgo(l.created_at) %></span></li><% }) %></ul>
+      <a href="/admin/contactos" class="small">Ver todos →</a>
+      <% } else { %><p class="muted">Sin contactos nuevos.</p><% } %>
+    </div>
+    <div class="card pad">
+      <h3>Totales</h3>
+      <p><%= stats.total %> comercios registrados · <%= stats.approved %> publicados · <%= stats.pending %> en revisión · <%= stats.products %> productos activos.</p>
+      <p class="fine-note">Decisión a los 90 días: ¿los vecinos vuelven y los negocios reciben clientes?</p>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

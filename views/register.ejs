@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<div class="wrap section-sm auth">
+  <div class="card form-card">
+    <h1 class="page-title">Registrá tu comercio</h1>
+    <p class="muted">Gratis. Incluye <%= settings.trial_days %> días de prueba de Comercio Pro una vez aprobada tu ficha.</p>
+    <% if (error) { %><div class="flash flash-warn"><%= error %></div><% } %>
+    <form method="post" action="/registro">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="text" name="website_hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="field"><span>Nombre del comercio *</span><input name="business_name" required maxlength="80" value="<%= form.business_name || '' %>"></label>
+      <label class="field"><span>Rubro principal *</span>
+        <select name="category_id" required>
+          <option value="">Elegí un rubro</option>
+          <% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= String(form.category_id) === String(c.id) ? 'selected' : '' %>><%= c.icon %> <%= c.name %></option><% }) %>
+        </select>
+        <small>Define qué pedidos BUSCO YA vas a recibir.</small>
+      </label>
+      <div class="row2">
+        <label class="field"><span>WhatsApp del comercio *</span><input name="whatsapp" required inputmode="tel" placeholder="2323 123456" value="<%= form.whatsapp || '' %>"></label>
+        <label class="field"><span>Zona o barrio</span><input name="zone" placeholder="Centro" value="<%= form.zone || '' %>"></label>
+      </div>
+      <label class="field"><span>Dirección</span><input name="address" placeholder="Calle y número" value="<%= form.address || '' %>"></label>
+      <hr>
+      <label class="field"><span>Tu nombre *</span><input name="name" required autocomplete="name" value="<%= form.name || '' %>"></label>
+      <label class="field"><span>Email *</span><input type="email" name="email" required autocomplete="email" value="<%= form.email || '' %>"></label>
+      <label class="field"><span>Contraseña * <small>(mínimo 8 caracteres)</small></span><input type="password" name="password" required minlength="8" autocomplete="new-password"></label>
+      <label class="check"><input type="checkbox" name="acepto" value="1" required> Acepto los <a href="/terminos" target="_blank">términos y condiciones</a> y la <a href="/privacidad" target="_blank">política de privacidad</a>.</label>
+      <button class="btn btn-accent btn-lg btn-block">Crear cuenta</button>
+    </form>
+    <p class="center small">¿Ya tenés cuenta? <a href="/ingresar">Ingresá</a></p>
+  </div>
+</div>
+<%- include('partials/footer') %>

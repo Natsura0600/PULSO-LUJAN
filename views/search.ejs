@@ -1,0 +1,77 @@
+<%- include('partials/header') %>
+<%
+  function qs(over) {
+    const base = { q, cat, zona, abierto: abierto ? '1' : '', tipo: tipo === 'todo' ? '' : tipo, min: min || '', max: max || '', orden: sort || '' };
+    const o = Object.assign(base, over);
+    return '/buscar?' + Object.entries(o).filter(([, v]) => v !== '' && v !== null && v !== undefined).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
+  }
+%>
+<section class="wrap section-sm">
+  <h1 class="page-title"><%= catRow ? catRow.icon + ' ' + catRow.name : (q ? 'Resultados para “' + q + '”' : 'Explorá Luján') %></h1>
+
+  <form class="filters" action="/buscar" id="filters">
+    <input class="f-q" name="q" value="<%= q %>" placeholder="¿Qué buscás?" aria-label="Buscar">
+    <select name="cat" aria-label="Rubro">
+      <option value="">Todos los rubros</option>
+      <% categories.forEach(function(c){ %><option value="<%= c.slug %>" <%= c.slug === cat ? 'selected' : '' %>><%= c.name %></option><% }) %>
+    </select>
+    <select name="zona" aria-label="Zona">
+      <option value="">Todas las zonas</option>
+      <% zones.forEach(function(z){ %><option <%= z === zona ? 'selected' : '' %>><%= z %></option><% }) %>
+    </select>
+    <% if (tipo !== 'comercios') { %>
+    <input name="min" inputmode="numeric" value="<%= min || '' %>" placeholder="Precio mín." aria-label="Precio mínimo" class="f-num">
+    <input name="max" inputmode="numeric" value="<%= max || '' %>" placeholder="Precio máx." aria-label="Precio máximo" class="f-num">
+    <select name="orden" aria-label="Ordenar">
+      <option value="">Más recientes</option>
+      <option value="precio_asc" <%= sort === 'precio_asc' ? 'selected' : '' %>>Menor precio</option>
+      <option value="precio_desc" <%= sort === 'precio_desc' ? 'selected' : '' %>>Mayor precio</option>
+    </select>
+    <% } %>
+    <label class="check"><input type="checkbox" name="abierto" value="1" <%= abierto ? 'checked' : '' %>> Abierto ahora</label>
+    <% if (tipo !== 'todo') { %><input type="hidden" name="tipo" value="<%= tipo %>"><% } %>
+    <button class="btn btn-primary">Filtrar</button>
+  </form>
+
+  <div class="tabs">
+    <a href="<%= qs({ tipo: '', pag: '' }) %>" class="<%= tipo === 'todo' ? 'on' : '' %>">Todo</a>
+    <a href="<%= qs({ tipo: 'productos', pag: '' }) %>" class="<%= tipo === 'productos' ? 'on' : '' %>">Productos</a>
+    <a href="<%= qs({ tipo: 'comercios', pag: '' }) %>" class="<%= tipo === 'comercios' ? 'on' : '' %>">Comercios</a>
+  </div>
+
+  <% if (sponsoredList.length) { %>
+  <div class="grid grid-biz sponsored-row">
+    <% sponsoredList.forEach(function(b){ %><%- include('partials/biz-card', { b, sponsoredCard: true }) %><% }) %>
+  </div>
+  <% } %>
+
+  <% if (tipo !== 'comercios' && products.length) { %>
+    <% if (tipo === 'todo') { %><div class="sec-head"><h2>Productos</h2><a href="<%= qs({ tipo: 'productos' }) %>">Ver solo productos →</a></div><% } %>
+    <div class="grid grid-prod">
+      <% products.forEach(function(p){ %><%- include('partials/product-card', { p }) %><% }) %>
+    </div>
+  <% } %>
+
+  <% if (tipo !== 'productos' && businesses.length) { %>
+    <% if (tipo === 'todo') { %><div class="sec-head"><h2>Comercios</h2><a href="<%= qs({ tipo: 'comercios' }) %>">Ver solo comercios →</a></div><% } %>
+    <div class="grid grid-biz">
+      <% businesses.forEach(function(b){ %><%- include('partials/biz-card', { b }) %><% }) %>
+    </div>
+  <% } %>
+
+  <% if (!products.length && !businesses.length) { %>
+  <div class="empty">
+    <p class="empty-ic">🔎</p>
+    <h2>No encontramos resultados<%= q ? ' para “' + q + '”' : '' %></h2>
+    <p>Probá con otras palabras o sacá algún filtro. ¿No lo encontrás? Publicalo en BUSCO YA y que los comercios te respondan.</p>
+    <a class="btn btn-accent" href="/busco-ya<%= q ? '?q=' + encodeURIComponent(q) : '' %>">Publicar en BUSCO YA</a>
+  </div>
+  <% } else { %>
+  <div class="pager">
+    <% if (page > 1) { %><a class="btn btn-ghost" href="<%= qs({ pag: page - 1 }) %>">← Anterior</a><% } %>
+    <% if (more) { %><a class="btn btn-ghost" href="<%= qs({ pag: page + 1 }) %>">Ver más →</a><% } %>
+  </div>
+  <div class="inline-cta">¿No encontrás exactamente lo que buscás? <a href="/busco-ya<%= q ? '?q=' + encodeURIComponent(q) : '' %>"><strong>Publicalo en BUSCO YA</strong></a> y recibí propuestas.</div>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

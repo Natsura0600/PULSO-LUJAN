@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es-AR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR para vidriera · <%= biz.name %></title>
+<link rel="stylesheet" href="/css/styles.css?v=1">
+</head>
+<body class="qr-page">
+  <div class="no-print qr-tools"><button class="btn btn-primary" onclick="window.print()">Imprimir</button> <a class="btn btn-ghost" href="/panel">Volver al panel</a> <a class="btn btn-ghost" href="/qr/<%= biz.slug %>.svg" download="qr-<%= biz.slug %>.svg">Descargar QR</a></div>
+  <div class="poster">
+    <div class="poster-brand"><span class="dot"></span> PULSO<span class="brand-dot">.</span> <small>LUJÁN</small></div>
+    <h1>Buscá productos en Luján<br><span>Publicá tu pedido</span></h1>
+    <img src="/qr/<%= biz.slug %>.svg" alt="QR de <%= biz.name %>">
+    <p class="poster-biz">Escaneá y mirá el catálogo de <strong><%= biz.name %></strong></p>
+    <p class="poster-url"><%= baseUrl.replace(/^https?:\/\//, '') %>/c/<%= biz.slug %></p>
+  </div>
+</body></html>

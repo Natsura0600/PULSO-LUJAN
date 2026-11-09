@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<%- include('../partials/panel-nav') %>
+<div class="wrap panel-body">
+  <div class="card pad">
+    <h2>Tu plan actual: <%= PLAN_NAMES[plan] %></h2>
+    <% if (plan !== 'basico' && biz.plan_until) { %>
+      <p>Vigente hasta el <strong><%= fmtDate(biz.plan_until) %></strong>. <% if (!payments.length) { %>Estás en el período de prueba.<% } %></p>
+    <% } else if (biz.plan !== 'basico' && biz.plan_until) { %>
+      <p>Tu plan <%= PLAN_NAMES[biz.plan] %> venció el <%= fmtDate(biz.plan_until) %>. Tu ficha sigue publicada en el plan Básico.</p>
+    <% } else if (biz.status === 'pending') { %>
+      <p>Cuando aprobemos tu ficha, se activa tu prueba gratuita de <%= settings.trial_days %> días de Comercio Pro.</p>
+    <% } %>
+    <p class="small muted">Productos publicados: <%= productCount %> de <%= limits.products %>.</p>
+  </div>
+
+  <div class="plans">
+    <div class="plan <%= plan === 'basico' ? 'plan-current' : '' %>">
+      <h3>Básico</h3><p class="plan-price">Gratis</p>
+      <ul><li>Ficha completa con contacto y mapa</li><li>Hasta <%= settings.basic_product_limit %> productos</li><li>QR para vidriera</li></ul>
+    </div>
+    <div class="plan plan-pop <%= plan === 'pro' ? 'plan-current' : '' %>">
+      <h3>Comercio Pro</h3><p class="plan-price"><%= fmtPrice(settings.price_pro) %><small>/mes</small></p>
+      <ul><li>Hasta <%= settings.pro_product_limit %> productos</li><li>Promociones con canje</li><li>Pedidos BUSCO YA</li><li>Métricas de clics</li></ul>
+      <% if (settings.contact_whatsapp) { %><a class="btn btn-accent btn-block" target="_blank" rel="noopener" href="<%= waLink(settings.contact_whatsapp, 'Hola! Quiero contratar Comercio Pro para ' + biz.name + ' (' + baseUrl + '/c/' + biz.slug + ').') %>">Contratar Pro</a><% } %>
+    </div>
+    <div class="plan <%= plan === 'destacado' ? 'plan-current' : '' %>">
+      <h3>Destacado</h3><p class="plan-price"><%= fmtPrice(settings.price_destacado) %><small>/mes</small></p>
+      <ul><li>Todo lo de Pro</li><li>Espacios patrocinados en inicio y búsquedas</li><li>Más análisis</li></ul>
+      <% if (settings.contact_whatsapp) { %><a class="btn btn-primary btn-block" target="_blank" rel="noopener" href="<%= waLink(settings.contact_whatsapp, 'Hola! Quiero contratar el plan Destacado para ' + biz.name + ' (' + baseUrl + '/c/' + biz.slug + ').') %>">Contratar Destacado</a><% } %>
+    </div>
+  </div>
+
+  <div class="card pad">
+    <h3>Cómo pagar</h3>
+    <p class="prewrap"><%= settings.payment_instructions %></p>
+    <% if (settings.contact_whatsapp) { %><a class="btn btn-wa" target="_blank" rel="noopener" href="<%= waLink(settings.contact_whatsapp, 'Hola! Te envío el comprobante de pago de ' + biz.name + '.') %>">Enviar comprobante por WhatsApp</a><% } %>
+    <p class="fine-note">Una vez acreditado el pago, activamos o extendemos tu plan en el día.</p>
+  </div>
+
+  <% if (payments.length) { %>
+  <h2 class="h2-sec">Historial de pagos</h2>
+  <div class="table-wrap"><table class="table">
+    <tr><th>Fecha</th><th>Plan</th><th class="num">Meses</th><th class="num">Importe</th></tr>
+    <% payments.forEach(function(p){ %><tr><td><%= fmtDate(p.created_at) %></td><td><%= PLAN_NAMES[p.plan] %></td><td class="num"><%= p.months %></td><td class="num"><%= fmtPrice(p.amount) %></td></tr><% }) %>
+  </table></div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

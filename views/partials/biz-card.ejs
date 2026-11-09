@@ -1,0 +1,14 @@
+<a class="card biz-card <%= typeof sponsoredCard !== 'undefined' && sponsoredCard ? 'is-sponsored' : '' %>" href="/c/<%= b.slug %>">
+  <div class="biz-cover" <% if (b.cover) { %>style="background-image:url('<%= thumb(b.cover) %>')"<% } %>>
+    <% if (typeof sponsoredCard !== 'undefined' && sponsoredCard) { %><span class="tag tag-sponsored">Patrocinado</span><% } %>
+    <% if (b.hasHours) { %><span class="tag <%= b.open ? 'tag-open' : 'tag-closed' %>"><%= b.open ? 'Abierto ahora' : 'Cerrado' %></span><% } %>
+  </div>
+  <div class="biz-body">
+    <div class="biz-logo"><% if (b.logo) { %><img src="<%= thumb(b.logo) %>" alt="" loading="lazy"><% } else { %><span><%= b.category_icon || '🏪' %></span><% } %></div>
+    <div class="biz-text">
+      <h3><%= b.name %></h3>
+      <p class="muted small"><%= b.category_name || 'Comercio' %><%= b.zone ? ' · ' + b.zone : '' %></p>
+      <% if (typeof b.product_count !== 'undefined' && b.product_count) { %><p class="muted small"><%= b.product_count %> producto<%= b.product_count === 1 ? '' : 's' %></p><% } %>
+    </div>
+  </div>
+</a>

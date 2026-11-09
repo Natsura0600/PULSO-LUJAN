@@ -1,0 +1,60 @@
+<%- include('partials/header') %>
+<% const avail = { disponible: 'Disponible', pocas: 'Últimas unidades', a_pedido: 'A pedido', sin_stock: 'Sin stock' }; %>
+<% const deliv = { retiro: 'Retiro en el local', envio: 'Envío a domicilio', ambos: 'Retiro o envío' }; %>
+<div class="wrap section-sm narrow">
+  <p class="eyebrow">BUSCO YA · <%= rq.category_icon %> <%= rq.category_name %></p>
+  <h1 class="page-title">“<%= rq.description %>”</h1>
+  <p class="muted">
+    Publicado <%= timeAgo(rq.created_at) %><%= rq.budget ? ' · Presupuesto ' + fmtPrice(rq.budget) : '' %><%= rq.zone ? ' · ' + rq.zone : '' %><%= rq.deadline ? ' · ' + rq.deadline : '' %>
+  </p>
+
+  <div class="status-box">
+    <% if (rq.status === 'closed') { %>
+      <strong>Pedido cerrado.</strong> Ya no recibe propuestas nuevas.
+    <% } else if (expired) { %>
+      <strong>Pedido vencido.</strong> Podés reabrirlo por 3 días más.
+    <% } else { %>
+      <strong>Pedido activo</strong> hasta el <%= fmtDate(rq.expires_at) %>. Lo pueden ver <%= reached %> comercio<%= reached === 1 ? '' : 's' %> del rubro.
+    <% } %>
+    <div class="status-actions">
+      <button class="btn btn-sm btn-ghost" data-copy="<%= baseUrl %>/busco-ya/p/<%= rq.token %>">Copiar enlace</button>
+      <a class="btn btn-sm btn-ghost" href="<%= waLink(rq.whatsapp, 'Mi pedido BUSCO YA en Pulso Luján: ' + baseUrl + '/busco-ya/p/' + rq.token) %>" target="_blank" rel="noopener">Enviármelo por WhatsApp</a>
+      <form method="post" action="/busco-ya/p/<%= rq.token %>/estado">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <% if (rq.status === 'closed' || expired) { %>
+          <input type="hidden" name="accion" value="reabrir"><button class="btn btn-sm btn-ghost">Reabrir pedido</button>
+        <% } else { %>
+          <input type="hidden" name="accion" value="cerrar"><button class="btn btn-sm btn-ghost">Ya lo conseguí, cerrar</button>
+        <% } %>
+      </form>
+    </div>
+    <p class="fine-note">Guardá este enlace: es privado y es la única forma de ver tus propuestas.</p>
+  </div>
+
+  <h2 class="h2-sec">Propuestas recibidas (<%= proposals.length %>)</h2>
+  <% if (!proposals.length) { %>
+    <div class="empty small-empty">
+      <p class="empty-ic">⏳</p>
+      <p>Todavía no hay propuestas. Los comercios suelen responder en el día. Volvé a este enlace más tarde.</p>
+      <% if (!reached) { %><p class="small muted">Todavía no hay comercios adheridos en este rubro. Igual guardamos tu pedido y avisaremos a los negocios que se sumen.</p><% } %>
+    </div>
+  <% } %>
+  <div class="proposals">
+    <% proposals.forEach(function(p){ %>
+    <article class="card proposal">
+      <% if (p.photo) { %><img src="<%= thumb(p.photo) %>" alt="" class="proposal-img" loading="lazy"><% } %>
+      <div class="proposal-body">
+        <div class="proposal-head">
+          <a href="/c/<%= p.business_slug %>" class="proposal-biz"><strong><%= p.business_name %></strong></a>
+          <span class="price"><%= p.price ? fmtPrice(p.price) : 'Precio a consultar' %></span>
+        </div>
+        <p><%= p.message %></p>
+        <p class="small muted"><%= avail[p.availability] %> · <%= deliv[p.delivery] %><%= p.zone ? ' · ' + p.zone : '' %> · <%= p.open ? 'Abierto ahora' : 'Cerrado ahora' %> · <%= timeAgo(p.created_at) %></p>
+        <a class="btn btn-wa btn-block" href="/go/whatsapp/<%= p.business_id %>?r=<%= p.id %>" rel="nofollow">Escribirle por WhatsApp</a>
+      </div>
+    </article>
+    <% }) %>
+  </div>
+  <p class="fine-note">Disponibilidad y precios declarados por cada comercio. Coordiná la compra directamente con el negocio.</p>
+</div>
+<%- include('partials/footer') %>

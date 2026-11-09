@@ -1,0 +1,34 @@
+{
+  "name": "pulso-lujan",
+  "version": "1.0.0",
+  "description": "Pulso Luján: plataforma de comercios, productos y BUSCO YA",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "create-admin": "node scripts/create-admin.js",
+    "demo:seed": "node scripts/seed-demo.js",
+    "demo:clear": "node scripts/seed-demo.js --clear",
+    "test": "node --test test/*.test.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1162.0",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "private": true,
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15"
+  }
+}

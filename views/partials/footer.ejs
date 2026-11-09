@@ -1,0 +1,43 @@
+</main>
+<footer class="footer">
+  <div class="wrap footer-in">
+    <div>
+      <a href="/" class="brand brand-light"><span class="dot"></span><span class="brand-name">PULSO<span class="brand-dot">.</span></span><span class="brand-city">LUJÁN</span></a>
+      <p class="muted-light">La ciudad se conecta. Los comercios venden. Los vecinos encuentran.</p>
+    </div>
+    <div>
+      <h4>Vecinos</h4>
+      <a href="/buscar">Buscar productos</a>
+      <a href="/busco-ya">Publicar un BUSCO YA</a>
+      <a href="/promociones">Promociones</a>
+      <a href="/como-funciona">Cómo funciona</a>
+    </div>
+    <div>
+      <h4>Comercios</h4>
+      <a href="/comercios">Sumá tu comercio</a>
+      <a href="/registro">Crear cuenta</a>
+      <a href="/ingresar">Ingresar</a>
+    </div>
+    <div>
+      <h4>Pulso</h4>
+      <a href="/terminos">Términos</a>
+      <a href="/privacidad">Privacidad</a>
+      <% if (settings.contact_whatsapp) { %><a href="<%= waLink(settings.contact_whatsapp, 'Hola Pulso Luján!') %>" rel="noopener">WhatsApp</a><% } %>
+      <% if (settings.instagram) { %><a href="<%= igUrl(settings.instagram) %>" rel="noopener">Instagram</a><% } %>
+    </div>
+  </div>
+  <div class="wrap fine">Pulso es un intermediario: los precios, stock, horarios y condiciones son informados por cada comercio. © <%= new Date().getFullYear() %> Pulso Luján.</div>
+</footer>
+<nav class="bottombar" aria-label="Navegación principal">
+  <a href="/" class="<%= path === '/' ? 'on' : '' %>"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</a>
+  <a href="/buscar" class="<%= path.startsWith('/buscar') ? 'on' : '' %>"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Buscar</a>
+  <a href="/busco-ya" class="bb-main <%= path.startsWith('/busco-ya') ? 'on' : '' %>"><span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>BUSCO YA</a>
+  <a href="/promociones" class="<%= path.startsWith('/promociones') ? 'on' : '' %>"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Promos</a>
+  <% if (user) { %>
+  <a href="<%= user.role === 'admin' ? '/admin' : '/panel' %>" class="<%= path.startsWith('/panel') || path.startsWith('/admin') ? 'on' : '' %>"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Panel</a>
+  <% } else { %>
+  <a href="/comercios" class="<%= path.startsWith('/comercios') ? 'on' : '' %>"><svg viewBox="0 0 24 24"><path d="M3 9h18l-1.5-5h-15zM4 9v11h16V9M9 20v-6h6v6"/></svg>Comercios</a>
+  <% } %>
+</nav>
+</body>
+</html>

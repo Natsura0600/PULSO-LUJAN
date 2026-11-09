@@ -1,0 +1,7 @@
+<div class="wrap panel-head"><div><p class="eyebrow">Administración</p><h1 class="panel-title"><%= title %></h1></div></div>
+<nav class="wrap panel-tabs">
+  <% [['/admin', 'Resumen'], ['/admin/comercios', 'Comercios', pendingCount], ['/admin/pedidos', 'BUSCO YA'], ['/admin/reportes', 'Reportes', reportCount], ['/admin/contactos', 'Contactos'], ['/admin/ajustes', 'Ajustes']].forEach(function(t){ %>
+    <a href="<%= t[0] %>" class="<%= (t[0] === '/admin' ? (path === '/admin' || path === '/admin/') : path.startsWith(t[0])) ? 'on' : '' %>"><%= t[1] %><% if (t[2]) { %> <span class="badge"><%= t[2] %></span><% } %></a>
+  <% }) %>
+  <form method="post" action="/salir" class="logout"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">Salir</button></form>
+</nav>

@@ -1,0 +1,79 @@
+<%- include('../partials/header') %>
+<%- include('../partials/panel-nav') %>
+<div class="wrap panel-body">
+  <% const pending = checklist.filter(c => !c.ok); %>
+  <% if (pending.length) { %>
+  <div class="card checklist">
+    <h2>Completá tu ficha (<%= checklist.length - pending.length %>/<%= checklist.length %>)</h2>
+    <p class="muted small">Las fichas completas reciben muchas más consultas.</p>
+    <ul>
+      <% checklist.forEach(function(c){ %><li class="<%= c.ok ? 'done' : '' %>"><a href="<%= c.href %>"><%= c.ok ? '✓' : '○' %> <%= c.label %></a></li><% }) %>
+    </ul>
+  </div>
+  <% } %>
+
+  <div class="quick">
+    <a class="quick-btn" href="/panel/productos/nuevo"><span>＋</span>Publicar producto</a>
+    <a class="quick-btn" href="/panel/pedidos"><span>⚡</span>Pedidos<% if (openReqs) { %> <b class="badge"><%= openReqs %></b><% } %></a>
+    <a class="quick-btn" href="/panel/promociones"><span>🏷️</span>Nueva promo</a>
+    <a class="quick-btn" href="/panel/qr" target="_blank"><span>▦</span>QR vidriera</a>
+  </div>
+
+  <div class="sec-head"><h2>Resultados</h2>
+    <div class="seg"><% [7, 30, 90].forEach(function(d){ %><a href="/panel?dias=<%= d %>" class="<%= days === d ? 'on' : '' %>"><%= d %> días</a><% }) %></div>
+  </div>
+
+  <% const views = (counts.view || 0) + (counts.product_view || 0); %>
+  <div class="kpis">
+    <div class="kpi"><span>Visitas a tu ficha y productos</span><strong><%= views %></strong></div>
+    <% if (limits.metrics) { %>
+    <div class="kpi"><span>Clics a WhatsApp</span><strong><%= (counts.click_whatsapp || 0) + (counts.click_proposal_whatsapp || 0) %></strong></div>
+    <div class="kpi"><span>Contactos y derivaciones</span><strong><%= clicks %></strong><small>WhatsApp, teléfono, web, mapa y redes</small></div>
+    <div class="kpi"><span>Pedidos BUSCO YA recibidos</span><strong><%= counts.request_received || 0 %></strong><small><%= proposalsSent %> respondidos</small></div>
+    <div class="kpi"><span>Canjes de promociones</span><strong><%= redemptions %></strong></div>
+    <% } else { %>
+    <div class="kpi kpi-locked"><span>Clics, contactos, pedidos y canjes</span><strong>🔒</strong><small><a href="/panel/plan">Disponibles en Comercio Pro</a></small></div>
+    <% } %>
+  </div>
+
+  <% if (limits.metrics) { %>
+  <div class="panel-grid">
+    <div class="card pad">
+      <h3>Visitas por día</h3>
+      <% if (daily.length) { const maxN = Math.max(...daily.map(d => d.n)); %>
+      <div class="bars" role="img" aria-label="Visitas por día">
+        <% daily.forEach(function(d){ %><div class="bar" style="height:<%= Math.max(4, Math.round(d.n / maxN * 100)) %>%" title="<%= d.d %>: <%= d.n %> visitas"><span><%= d.n %></span></div><% }) %>
+      </div>
+      <p class="fine-note"><%= daily[0].d %> a <%= daily[daily.length - 1].d %></p>
+      <% } else { %><p class="muted">Todavía no hay visitas en este período. Compartí tu ficha en Instagram y WhatsApp, y poné el QR en tu vidriera.</p><% } %>
+    </div>
+    <div class="card pad">
+      <h3>Desglose de contactos</h3>
+      <table class="table">
+        <% [['click_whatsapp', 'WhatsApp desde ficha/productos'], ['click_proposal_whatsapp', 'WhatsApp desde BUSCO YA'], ['click_phone', 'Llamadas'], ['click_map', 'Cómo llegar'], ['click_web', 'Sitio web'], ['click_instagram', 'Instagram'], ['click_facebook', 'Facebook']].forEach(function(r){ %>
+        <tr><td><%= r[1] %></td><td class="num"><%= counts[r[0]] || 0 %></td></tr>
+        <% }) %>
+      </table>
+    </div>
+    <div class="card pad">
+      <h3>Productos más vistos</h3>
+      <% if (topProducts.length) { %>
+      <table class="table"><tr><th>Producto</th><th class="num">Vistas</th><th class="num">WhatsApp</th></tr>
+        <% topProducts.forEach(function(p){ %><tr><td><a href="/p/<%= p.id %>" target="_blank"><%= p.name %></a></td><td class="num"><%= p.views %></td><td class="num"><%= p.wa %></td></tr><% }) %>
+      </table>
+      <% } else { %><p class="muted">Sin datos todavía.</p><% } %>
+    </div>
+    <div class="card pad">
+      <h3>Registrar canje</h3>
+      <p class="small muted">Cuando un cliente muestre el código de una promoción, registralo acá para medir resultados.</p>
+      <form method="post" action="/panel/canje" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="from" value="panel">
+        <input class="input" name="code" placeholder="Código" required>
+        <button class="btn btn-primary">Registrar</button>
+      </form>
+    </div>
+  </div>
+  <p class="fine-note">Las métricas cuentan consultas y derivaciones generadas por Pulso, no ventas concretadas.</p>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

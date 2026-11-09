@@ -1,0 +1,44 @@
+<%- include('../partials/header') %>
+<%- include('../partials/panel-nav') %>
+<% const availNames = { disponible: 'Disponible', pocas: 'Últimas unidades', a_pedido: 'A pedido', sin_stock: 'Sin stock' }; %>
+<div class="wrap panel-body">
+  <div class="sec-head">
+    <h2>Mis productos <span class="muted">(<%= products.length %>/<%= limits.products %>)</span></h2>
+    <a class="btn btn-accent" href="/panel/productos/nuevo">＋ Nuevo producto</a>
+  </div>
+  <% if (!products.length) { %>
+  <div class="empty"><p class="empty-ic">📦</p><h2>Publicá tu primer producto</h2><p>Con foto, nombre y precio. No necesitás sitio web: los vecinos lo encuentran en el buscador y te escriben por WhatsApp.</p><a class="btn btn-accent" href="/panel/productos/nuevo">Publicar producto</a></div>
+  <% } else { %>
+  <% if (products.length > 6) { %><input class="input filter-local" placeholder="Buscar en mis productos…" data-filter=".plist .pitem"><% } %>
+  <div class="plist">
+    <% products.forEach(function(p){ %>
+    <div class="pitem <%= p.active ? '' : 'paused' %>">
+      <a href="/panel/productos/<%= p.id %>" class="pitem-img"><% if (p.photo) { %><img src="<%= thumb(p.photo) %>" alt="" loading="lazy"><% } else { %><span>📦</span><% } %></a>
+      <div class="pitem-info">
+        <a href="/panel/productos/<%= p.id %>"><strong><%= p.name %></strong></a>
+        <span class="price"><%= p.price ? fmtPrice(p.price) : 'Consultar' %></span>
+        <span class="small muted"><%= p.active ? 'Publicado' : 'Pausado' %> · actualizado <%= timeAgo(p.updated_at) %></span>
+      </div>
+      <div class="pitem-actions">
+        <form method="post" action="/panel/productos/<%= p.id %>/estado" class="inline">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <select name="availability" class="input input-sm" data-autosubmit aria-label="Disponibilidad">
+            <% Object.keys(availNames).forEach(function(k){ %><option value="<%= k %>" <%= p.availability === k ? 'selected' : '' %>><%= availNames[k] %></option><% }) %>
+          </select>
+        </form>
+        <form method="post" action="/panel/productos/<%= p.id %>/estado" class="inline">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="btn btn-ghost btn-sm"><%= p.active ? 'Pausar' : 'Publicar' %></button>
+        </form>
+        <a class="btn btn-ghost btn-sm" href="/panel/productos/<%= p.id %>">Editar</a>
+        <form method="post" action="/panel/productos/<%= p.id %>/borrar" class="inline" data-confirm="¿Eliminar “<%= p.name %>”? No se puede deshacer.">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="btn btn-ghost btn-sm danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

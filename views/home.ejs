@@ -1,0 +1,120 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <div class="wrap hero-in">
+    <div class="hero-text">
+      <p class="hero-kicker"><span class="dot"></span> Luján, Buenos Aires</p>
+      <h1>La ciudad se conecta.<br>Los comercios venden.<br><span>Los vecinos encuentran.</span></h1>
+      <p class="hero-sub">Buscá productos y servicios de negocios de Luján, mirá precios y escribiles directo por WhatsApp.</p>
+      <% if (stats.businesses) { %>
+      <p class="hero-stats"><strong><%= stats.businesses %></strong> comercios · <strong><%= stats.products %></strong> productos publicados</p>
+      <% } %>
+    </div>
+    <div class="hero-card">
+      <h2>¿Qué estás buscando?</h2>
+      <form action="/buscar" class="search-big" role="search">
+        <input name="q" placeholder="Ropa, comida, servicios…" aria-label="¿Qué estás buscando?" autocomplete="off">
+        <button class="btn btn-primary" aria-label="Buscar">Buscar</button>
+      </form>
+      <a class="busco-box" href="/busco-ya">
+        <strong>BUSCO YA</strong>
+        <span>Publicá lo que necesitás y recibí propuestas de comercios locales.</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="wrap section">
+  <div class="cats">
+    <% categories.forEach(function(c){ %>
+      <a class="cat" href="/buscar?cat=<%= c.slug %>"><span class="cat-ic"><%= c.icon %></span><span><%= c.name %></span></a>
+    <% }) %>
+  </div>
+</section>
+
+<% if (featured.length) { %>
+<section class="wrap section">
+  <div class="sec-head"><h2>Destacados</h2><span class="tag tag-sponsored">Patrocinado</span></div>
+  <div class="grid grid-biz">
+    <% featured.forEach(function(b){ %><%- include('partials/biz-card', { b, sponsoredCard: true }) %><% }) %>
+  </div>
+</section>
+<% } %>
+
+<% if (promos.length) { %>
+<section class="wrap section">
+  <div class="sec-head"><h2>Promociones vigentes</h2><a href="/promociones">Ver todas →</a></div>
+  <div class="hscroll">
+    <% promos.forEach(function(pr){ %><%- include('partials/promo-card', { pr }) %><% }) %>
+  </div>
+</section>
+<% } %>
+
+<% if (products.length) { %>
+<section class="wrap section">
+  <div class="sec-head"><h2>Recién publicados</h2><a href="/buscar?tipo=productos">Ver más →</a></div>
+  <div class="grid grid-prod">
+    <% products.forEach(function(p){ %><%- include('partials/product-card', { p }) %><% }) %>
+  </div>
+</section>
+<% } %>
+
+<% if (openNow.length) { %>
+<section class="wrap section">
+  <div class="sec-head"><h2>Abiertos ahora</h2><a href="/buscar?abierto=1&tipo=comercios">Ver todos →</a></div>
+  <div class="grid grid-biz">
+    <% openNow.forEach(function(b){ %><%- include('partials/biz-card', { b }) %><% }) %>
+  </div>
+  <p class="fine-note">Horarios informados por cada comercio.</p>
+</section>
+<% } else if (recent.length) { %>
+<section class="wrap section">
+  <div class="sec-head"><h2>Comercios de Luján</h2><a href="/buscar?tipo=comercios">Ver todos →</a></div>
+  <div class="grid grid-biz">
+    <% recent.forEach(function(b){ %><%- include('partials/biz-card', { b }) %><% }) %>
+  </div>
+</section>
+<% } %>
+
+<section class="wrap section">
+  <div class="how">
+    <div class="how-head">
+      <p class="eyebrow">BUSCO YA</p>
+      <h2>No recorras diez locales. Que los locales te encuentren a vos.</h2>
+      <p>Ejemplo: <em>“Busco zapatillas talle 42, hasta $100.000, para retirar hoy en Luján”</em>. Los comercios del rubro te responden con precio, foto y disponibilidad.</p>
+      <a class="btn btn-accent" href="/busco-ya">Publicar mi pedido</a>
+    </div>
+    <ol class="steps">
+      <li><b>01</b><div><strong>Publicás tu pedido</strong><span>Qué buscás, presupuesto, zona y plazo.</span></div></li>
+      <li><b>02</b><div><strong>Lo reciben los comercios del rubro</strong><span>Solo negocios adheridos de Luján.</span></div></li>
+      <li><b>03</b><div><strong>Te mandan propuestas</strong><span>Precio, foto, disponibilidad y entrega.</span></div></li>
+      <li><b>04</b><div><strong>Comparás y escribís</strong><span>Coordinás directo con el negocio por WhatsApp.</span></div></li>
+    </ol>
+  </div>
+  <% if (openRequests.length) { %>
+  <div class="live-requests">
+    <h3 class="small-h">Lo que están buscando los vecinos</h3>
+    <ul>
+      <% openRequests.forEach(function(rq){ %>
+      <li><span><%= rq.category_icon %></span> <%= rq.description.length > 90 ? rq.description.slice(0, 90) + '…' : rq.description %> <span class="muted small">· <%= timeAgo(rq.created_at) %></span></li>
+      <% }) %>
+    </ul>
+  </div>
+  <% } %>
+</section>
+
+<section class="wrap section">
+  <div class="cta-biz">
+    <div>
+      <h2>¿Tenés un comercio en Luján?</h2>
+      <p>Creá tu ficha gratis, publicá tus productos con fotos y precios, y recibí consultas de vecinos que están buscando lo que vendés.</p>
+    </div>
+    <div class="cta-actions">
+      <a class="btn btn-accent" href="/registro">Sumar mi comercio</a>
+      <a class="btn btn-ghost-light" href="/comercios">Ver planes</a>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

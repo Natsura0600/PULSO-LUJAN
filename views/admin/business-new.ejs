@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <form class="card form-card" method="post" action="/admin/comercios/nuevo">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Alta de comercio (visita comercial)</h2>
+    <p class="small muted">Crea la cuenta del comerciante, publica la ficha y activa la prueba Pro. Después podés usar “Editar como este comercio” para cargar fotos y productos.</p>
+    <% if (error) { %><div class="flash flash-warn"><%= error %></div><% } %>
+    <label class="field"><span>Nombre del comercio *</span><input name="business_name" required value="<%= form.business_name || '' %>"></label>
+    <label class="field"><span>Rubro</span><select name="category_id"><% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= String(form.category_id) === String(c.id) ? 'selected' : '' %>><%= c.icon %> <%= c.name %></option><% }) %></select></label>
+    <div class="row2">
+      <label class="field"><span>WhatsApp</span><input name="whatsapp" value="<%= form.whatsapp || '' %>"></label>
+      <label class="field"><span>Zona</span><input name="zone" value="<%= form.zone || '' %>"></label>
+    </div>
+    <label class="field"><span>Dirección</span><input name="address" value="<%= form.address || '' %>"></label>
+    <hr>
+    <div class="row2">
+      <label class="field"><span>Nombre del dueño</span><input name="name" value="<%= form.name || '' %>"></label>
+      <label class="field"><span>Email del dueño *</span><input type="email" name="email" required value="<%= form.email || '' %>"></label>
+    </div>
+    <label class="field"><span>Contraseña inicial</span><input name="password" placeholder="Vacío = se genera una"><small>Se muestra una sola vez para que se la pases.</small></label>
+    <button class="btn btn-accent">Crear comercio</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

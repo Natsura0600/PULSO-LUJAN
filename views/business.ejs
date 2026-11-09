@@ -1,0 +1,109 @@
+<%- include('partials/header') %>
+<% const deliveryText = { retiro: 'Retiro en el local', envio: 'Envío a domicilio', ambos: 'Retiro y envío' }[biz.delivery] || ''; %>
+<script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: biz.name, description: biz.description, address: biz.address ? { '@type': 'PostalAddress', streetAddress: biz.address, addressLocality: 'Luján', addressRegion: 'Buenos Aires', addressCountry: 'AR' } : undefined, telephone: biz.phone || undefined, url: baseUrl + '/c/' + biz.slug, image: biz.cover ? abs(biz.cover) : undefined }).replace(/</g, '\\u003c') %></script>
+
+<% if (biz.status !== 'approved') { %>
+<div class="wrap"><div class="flash flash-warn">Vista previa: tu ficha todavía no es pública (estado: <%= biz.status === 'pending' ? 'en revisión' : 'suspendida' %>).</div></div>
+<% } %>
+
+<section class="biz-hero" <% if (biz.cover) { %>style="--cover:url('<%= biz.cover %>')"<% } %>>
+  <div class="wrap biz-hero-in">
+    <div class="biz-logo lg"><% if (biz.logo) { %><img src="<%= biz.logo %>" alt="Logo de <%= biz.name %>"><% } else { %><span><%= biz.category_icon || '🏪' %></span><% } %></div>
+    <div>
+      <p class="eyebrow light"><a href="/buscar?cat=<%= biz.category_slug %>"><%= biz.category_name %></a><%= biz.zone ? ' · ' + biz.zone : '' %></p>
+      <h1><%= biz.name %></h1>
+      <div class="biz-badges">
+        <% if (biz.hasHours) { %><span class="tag <%= biz.open ? 'tag-open' : 'tag-closed' %>"><%= biz.open ? 'Abierto ahora' : 'Cerrado ahora' %></span><% } %>
+        <% if (deliveryText) { %><span class="tag tag-light"><%= deliveryText %></span><% } %>
+        <% if (biz.effPlan === 'destacado') { %><span class="tag tag-sponsored">Patrocinado</span><% } %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap biz-layout">
+  <div class="biz-main">
+    <div class="contact-bar">
+      <% if (biz.whatsapp) { %><a class="btn btn-wa" href="/go/whatsapp/<%= biz.id %>" rel="nofollow">WhatsApp</a><% } %>
+      <% if (biz.phone) { %><a class="btn btn-ghost" href="/go/phone/<%= biz.id %>" rel="nofollow">Llamar</a><% } %>
+      <% if (biz.address) { %><a class="btn btn-ghost" href="/go/map/<%= biz.id %>" rel="nofollow" target="_blank">Cómo llegar</a><% } %>
+      <% if (biz.website) { %><a class="btn btn-ghost" href="/go/web/<%= biz.id %>" rel="nofollow" target="_blank">Sitio web</a><% } %>
+      <% if (biz.instagram) { %><a class="btn btn-ghost" href="/go/instagram/<%= biz.id %>" rel="nofollow" target="_blank">Instagram</a><% } %>
+      <% if (biz.facebook) { %><a class="btn btn-ghost" href="/go/facebook/<%= biz.id %>" rel="nofollow" target="_blank">Facebook</a><% } %>
+      <button class="btn btn-ghost" data-share data-title="<%= biz.name %>" data-url="<%= baseUrl %>/c/<%= biz.slug %>">Compartir</button>
+    </div>
+
+    <% if (biz.description) { %><div class="prose"><p><%- String(biz.description).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g, '<br>') %></p></div><% } %>
+
+    <% if (gallery.length) { %>
+    <div class="gallery">
+      <% gallery.forEach(function(g){ %><a href="<%= g %>" target="_blank"><img src="<%= thumb(g) %>" alt="Foto de <%= biz.name %>" loading="lazy"></a><% }) %>
+    </div>
+    <% } %>
+
+    <% if (promos.length) { %>
+    <h2 class="h2-sec">Promociones vigentes</h2>
+    <div class="grid grid-promo">
+      <% promos.forEach(function(pr){ %><%- include('partials/promo-card', { pr }) %><% }) %>
+    </div>
+    <% } %>
+
+    <h2 class="h2-sec">Productos <span class="muted">(<%= products.length %>)</span></h2>
+    <% if (products.length > 8) { %>
+      <input class="input filter-local" placeholder="Buscar en <%= biz.name %>…" data-filter=".biz-products .prod-card">
+    <% } %>
+    <% if (products.length) { %>
+    <div class="grid grid-prod biz-products">
+      <% products.forEach(function(p){ p.business_name = biz.name; p.zone = ''; %><%- include('partials/product-card', { p }) %><% }) %>
+    </div>
+    <% } else { %>
+      <p class="muted">Este comercio todavía no publicó productos. Consultales directamente por sus canales de contacto.</p>
+    <% } %>
+  </div>
+
+  <aside class="biz-side">
+    <div class="side-card">
+      <h3>Ubicación</h3>
+      <% if (biz.address) { %>
+        <p><strong><%= biz.address %></strong><br><span class="muted"><%= biz.zone ? biz.zone + ', ' : '' %>Luján</span></p>
+        <% if (biz.directions) { %><p class="small"><%= biz.directions %></p><% } %>
+        <iframe class="map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="<%= mapsEmbed(biz) %>" title="Mapa de <%= biz.name %>"></iframe>
+        <a class="small" href="/go/map/<%= biz.id %>" target="_blank" rel="nofollow">Abrir en Google Maps →</a>
+      <% } else { %><p class="muted">Sin dirección informada.</p><% } %>
+    </div>
+    <div class="side-card">
+      <h3>Horarios</h3>
+      <% if (biz.hasHours) { %>
+      <table class="hours">
+        <% hours.forEach(function(h){ %><tr class="<%= h.today ? 'today' : '' %>"><td><%= h.day %></td><td><%= h.text %></td></tr><% }) %>
+      </table>
+      <p class="fine-note">Horarios informados por el comercio, no garantizados.</p>
+      <% } else { %><p class="muted">Sin horarios informados.</p><% } %>
+    </div>
+    <div class="side-card">
+      <h3>Contacto</h3>
+      <% if (biz.whatsapp) { %><p>WhatsApp: <%= biz.whatsapp %></p><% } %>
+      <% if (biz.phone && biz.phone !== biz.whatsapp) { %><p>Teléfono: <%= biz.phone %></p><% } %>
+      <p class="fine-note">Actualizado <%= timeAgo(biz.updated_at) %> (<%= fmtDate(biz.updated_at) %>).</p>
+    </div>
+    <div class="side-card qr-card">
+      <img src="/qr/<%= biz.slug %>.svg" alt="Código QR de la ficha" width="120" height="120" loading="lazy">
+      <p class="small muted">Escaneá para abrir esta ficha en tu celular.</p>
+    </div>
+    <details class="report">
+      <summary>¿Algún dato es incorrecto? Avisanos</summary>
+      <form method="post" action="/reportar">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="business_id" value="<%= biz.id %>">
+        <input type="text" name="website_hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <select name="reason" class="input">
+          <option>Horario incorrecto</option><option>Precio o stock incorrecto</option><option>Dirección o contacto incorrecto</option>
+          <option>El comercio cerró</option><option>Contenido inapropiado</option><option>Otro</option>
+        </select>
+        <textarea name="details" class="input" rows="3" placeholder="Contanos brevemente (opcional)"></textarea>
+        <button class="btn btn-ghost btn-sm">Enviar reporte</button>
+      </form>
+    </details>
+  </aside>
+</div>
+<%- include('partials/footer') %>

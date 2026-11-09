@@ -1,0 +1,13 @@
+<%- include('partials/header') %>
+<section class="wrap section-sm">
+  <h1 class="page-title">Promociones vigentes</h1>
+  <p class="lead">Ofertas de comercios de Luján, con condiciones y vigencia claras. Mostrá el código en el local para usarlas.</p>
+  <% if (promos.length) { %>
+  <div class="grid grid-promo">
+    <% promos.forEach(function(pr){ %><%- include('partials/promo-card', { pr }) %><% }) %>
+  </div>
+  <% } else { %>
+  <div class="empty"><p class="empty-ic">🏷️</p><h2>Todavía no hay promociones vigentes</h2><p>Volvé pronto: los comercios publican ofertas nuevas todas las semanas.</p></div>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

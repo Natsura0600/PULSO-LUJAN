@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title><%= title ? `${title} · ${siteName}` : `${siteName} · Comercios y productos de Luján` %></title>
+  <meta name="description" content="<%= description || 'Encontrá comercios, productos y promociones de Luján. Publicá lo que buscás en BUSCO YA y recibí propuestas de negocios locales.' %>">
+  <meta name="theme-color" content="#13263a">
+  <% if (typeof noindex !== 'undefined' && noindex) { %><meta name="robots" content="noindex"><% } %>
+  <meta property="og:title" content="<%= title || siteName %>">
+  <meta property="og:description" content="<%= description || 'La ciudad se conecta. Los comercios venden. Los vecinos encuentran.' %>">
+  <meta property="og:type" content="website">
+  <% if (typeof ogImage !== 'undefined' && ogImage) { %><meta property="og:image" content="<%= abs(ogImage) %>"><% } else { %><meta property="og:image" content="<%= baseUrl %>/icons/og.png"><% } %>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/css/styles.css?v=1">
+  <script src="/js/app.js?v=1" defer></script>
+</head>

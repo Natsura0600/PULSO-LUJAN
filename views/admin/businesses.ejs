@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <div class="sec-head">
+    <form class="inline-form" action="/admin/comercios">
+      <input class="input" name="q" value="<%= q %>" placeholder="Buscar por nombre o email">
+      <select class="input" name="estado"><option value="">Todos</option><option value="pending" <%= estado === 'pending' ? 'selected' : '' %>>En revisión</option><option value="approved" <%= estado === 'approved' ? 'selected' : '' %>>Publicados</option><option value="suspended" <%= estado === 'suspended' ? 'selected' : '' %>>Suspendidos</option></select>
+      <button class="btn btn-ghost">Filtrar</button>
+    </form>
+    <a class="btn btn-accent" href="/admin/comercios/nuevo">＋ Alta de comercio</a>
+  </div>
+  <div class="table-wrap"><table class="table">
+    <tr><th>Comercio</th><th>Rubro</th><th>Estado</th><th>Plan</th><th class="num">Productos</th><th>Alta</th></tr>
+    <% list.forEach(function(b){ %>
+    <tr>
+      <td><a href="/admin/comercios/<%= b.id %>"><strong><%= b.name %></strong></a><br><span class="small muted"><%= b.email %></span></td>
+      <td><%= b.category_name || '—' %></td>
+      <td><span class="tag <%= b.status === 'approved' ? 'tag-open' : b.status === 'pending' ? 'tag-warn' : 'tag-closed' %>"><%= { approved: 'Publicado', pending: 'En revisión', suspended: 'Suspendido' }[b.status] %></span></td>
+      <td><%= PLAN_NAMES[b.effPlan] %><% if (b.effPlan !== 'basico') { %><br><span class="small muted">hasta <%= fmtDate(b.plan_until) %></span><% } %></td>
+      <td class="num"><%= b.products %></td>
+      <td class="small"><%= fmtDate(b.created_at) %></td>
+    </tr>
+    <% }) %>
+    <% if (!list.length) { %><tr><td colspan="6" class="muted">No hay comercios.</td></tr><% } %>
+  </table></div>
+</div>
+<%- include('../partials/footer') %>

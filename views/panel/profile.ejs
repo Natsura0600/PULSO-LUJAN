@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+<%- include('../partials/panel-nav') %>
+<div class="wrap panel-body">
+  <form class="card form-card wide" method="post" action="/panel/ficha" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Datos del comercio</h2>
+    <div class="row2">
+      <label class="field"><span>Nombre del comercio *</span><input name="name" required maxlength="80" value="<%= biz.name %>"></label>
+      <label class="field"><span>Rubro principal</span>
+        <select name="category_id"><% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= c.id === biz.category_id ? 'selected' : '' %>><%= c.icon %> <%= c.name %></option><% }) %></select>
+        <small>Recibís los pedidos BUSCO YA de este rubro.</small>
+      </label>
+    </div>
+    <label class="field"><span>Descripción</span>
+      <textarea name="description" rows="5" maxlength="1500" placeholder="Qué vendés u ofrecés, tu especialidad y por qué elegirte."><%= biz.description %></textarea>
+    </label>
+
+    <div class="row2">
+      <div class="field"><span>Logo</span>
+        <% if (biz.logo) { %><div class="thumb-row"><img src="<%= biz.logo %>" class="thumb" alt=""><label class="check small"><input type="checkbox" name="remove_logo" value="1"> Quitar</label></div><% } %>
+        <input type="file" name="logo" accept="image/*">
+      </div>
+      <div class="field"><span>Foto de portada</span>
+        <% if (biz.cover) { %><div class="thumb-row"><img src="<%= biz.cover %>" class="thumb wide" alt=""><label class="check small"><input type="checkbox" name="remove_cover" value="1"> Quitar</label></div><% } %>
+        <input type="file" name="cover" accept="image/*">
+      </div>
+    </div>
+    <div class="field"><span>Fotos del local (hasta 6)</span>
+      <% if (gallery.length) { %><div class="thumb-row wrap-row">
+        <% gallery.forEach(function(g){ %><label class="thumb-pick"><img src="<%= g %>" class="thumb" alt=""><span class="small"><input type="checkbox" name="remove_gallery" value="<%= g %>"> Quitar</span></label><% }) %>
+      </div><% } %>
+      <% if (gallery.length < 6) { %><input type="file" name="gallery" accept="image/*" multiple><% } %>
+    </div>
+
+    <h2>Ubicación</h2>
+    <div class="row2">
+      <label class="field"><span>Dirección</span><input name="address" maxlength="120" placeholder="San Martín 123" value="<%= biz.address %>"></label>
+      <label class="field"><span>Zona o barrio</span><input name="zone" list="zones" maxlength="40" value="<%= biz.zone %>">
+        <datalist id="zones"><% ['Centro', 'Basílica', ...zones].filter((v, i, a) => a.indexOf(v) === i).forEach(function(z){ %><option value="<%= z %>"><% }) %></datalist></label>
+    </div>
+    <label class="field"><span>Indicaciones para llegar</span><input name="directions" maxlength="300" placeholder="Frente a la plaza, local con toldo verde" value="<%= biz.directions %>"></label>
+    <label class="field"><span>Link de Google Maps (opcional)</span><input name="maps_url" placeholder="https://maps.app.goo.gl/…" value="<%= biz.maps_url %>"><small>Si lo dejás vacío, usamos la dirección.</small></label>
+
+    <h2>Contacto y redes</h2>
+    <div class="row2">
+      <label class="field"><span>WhatsApp *</span><input name="whatsapp" inputmode="tel" required value="<%= biz.whatsapp %>"></label>
+      <label class="field"><span>Teléfono</span><input name="phone" inputmode="tel" value="<%= biz.phone %>"></label>
+    </div>
+    <div class="row2">
+      <label class="field"><span>Sitio web o tienda online</span><input name="website" placeholder="www.mitienda.com" value="<%= biz.website %>"></label>
+      <label class="field"><span>Instagram</span><input name="instagram" placeholder="@micomercio" value="<%= biz.instagram %>"></label>
+    </div>
+    <div class="row2">
+      <label class="field"><span>Facebook</span><input name="facebook" placeholder="https://facebook.com/…" value="<%= biz.facebook %>"></label>
+      <label class="field"><span>Entrega</span>
+        <select name="delivery">
+          <% [['retiro', 'Solo retiro en el local'], ['envio', 'Solo envío a domicilio'], ['ambos', 'Retiro y envío']].forEach(function(o){ %><option value="<%= o[0] %>" <%= biz.delivery === o[0] ? 'selected' : '' %>><%= o[1] %></option><% }) %>
+        </select>
+      </label>
+    </div>
+
+    <h2 id="horarios">Horarios de atención</h2>
+    <p class="small muted">Podés cargar hasta dos franjas por día (ej. mañana y tarde). Se usan para el filtro “Abierto ahora”.</p>
+    <div class="hours-edit">
+      <% DAY_ORDER.forEach(function(d){ const r = hours[d] || []; const closed = hours[d] && !r.length; %>
+      <div class="hrow" data-day="<%= d %>">
+        <strong><%= DAYS[d] %></strong>
+        <input type="time" name="h<%= d %>_a_open" value="<%= r[0] ? r[0][0] : '' %>" aria-label="<%= DAYS[d] %> abre">
+        <span>a</span>
+        <input type="time" name="h<%= d %>_a_close" value="<%= r[0] ? r[0][1] : '' %>" aria-label="<%= DAYS[d] %> cierra">
+        <span class="sep">y</span>
+        <input type="time" name="h<%= d %>_b_open" value="<%= r[1] ? r[1][0] : '' %>" aria-label="<%= DAYS[d] %> abre (2da franja)">
+        <span>a</span>
+        <input type="time" name="h<%= d %>_b_close" value="<%= r[1] ? r[1][1] : '' %>" aria-label="<%= DAYS[d] %> cierra (2da franja)">
+        <label class="check small"><input type="checkbox" name="h<%= d %>_closed" value="1" <%= closed ? 'checked' : '' %>> Cerrado</label>
+      </div>
+      <% }) %>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-copy-hours>Copiar horario del lunes a lunes–viernes</button>
+
+    <div class="form-actions sticky-actions">
+      <button class="btn btn-accent btn-lg">Guardar ficha</button>
+      <a class="btn btn-ghost" href="/c/<%= biz.slug %>" target="_blank">Ver ficha</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

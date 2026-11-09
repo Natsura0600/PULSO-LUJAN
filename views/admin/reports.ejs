@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <div class="table-wrap"><table class="table">
+    <tr><th>Sobre</th><th>Motivo</th><th>Fecha</th><th></th></tr>
+    <% list.forEach(function(r){ %>
+    <tr class="<%= r.resolved ? 'muted' : '' %>">
+      <td><% if (r.request_token) { %>Pedido: <a href="/busco-ya/p/<%= r.request_token %>" target="_blank"><%= (r.request_description || '').slice(0, 60) %></a><% } else if (r.business_slug) { %><a href="/c/<%= r.business_slug %>" target="_blank"><%= r.business_name %></a><%= r.product_name ? ' › ' : '' %><% if (r.product_name) { %><a href="/p/<%= r.product_id %>" target="_blank"><%= r.product_name %></a><% } %><% } %></td>
+      <td><strong><%= r.reason %></strong><br><span class="small"><%= r.details %></span></td>
+      <td class="small"><%= timeAgo(r.created_at) %></td>
+      <td><% if (!r.resolved) { %><form method="post" action="/admin/reportes/<%= r.id %>/resolver"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost btn-sm">Marcar resuelto</button></form><% } else { %>Resuelto<% } %></td>
+    </tr>
+    <% }) %>
+    <% if (!list.length) { %><tr><td colspan="4" class="muted">Sin reportes.</td></tr><% } %>
+  </table></div>
+</div>
+<%- include('../partials/footer') %>

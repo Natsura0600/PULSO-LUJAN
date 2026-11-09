@@ -1,0 +1,22 @@
+<div class="wrap panel-head">
+  <div>
+    <p class="eyebrow">Panel del comercio</p>
+    <h1 class="panel-title"><%= biz.name %></h1>
+    <p class="small">
+      <span class="tag <%= biz.status === 'approved' ? 'tag-open' : biz.status === 'pending' ? 'tag-warn' : 'tag-closed' %>"><%= { approved: 'Publicado', pending: 'En revisión', suspended: 'Suspendido' }[biz.status] %></span>
+      <span class="tag"><%= PLAN_NAMES[plan] %><%= plan !== 'basico' && biz.plan_until ? ' · hasta ' + fmtDate(biz.plan_until) : '' %></span>
+      <a href="/c/<%= biz.slug %>" target="_blank" class="small">Ver mi ficha →</a>
+    </p>
+  </div>
+</div>
+<nav class="wrap panel-tabs">
+  <% [['/panel', 'Resumen'], ['/panel/ficha', 'Mi ficha'], ['/panel/productos', 'Productos'], ['/panel/promociones', 'Promociones'], ['/panel/pedidos', 'Pedidos'], ['/panel/plan', 'Plan'], ['/panel/cuenta', 'Cuenta']].forEach(function(t){ %>
+    <a href="<%= t[0] %>" class="<%= (t[0] === '/panel' ? (path === '/panel' || path === '/panel/') : path.startsWith(t[0])) ? 'on' : '' %>"><%= t[1] %><% if (t[0] === '/panel/pedidos' && openReqs) { %> <span class="badge"><%= openReqs %></span><% } %></a>
+  <% }) %>
+  <% if (!(typeof actingAs !== 'undefined' && actingAs)) { %>
+  <form method="post" action="/salir" class="logout"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link">Salir</button></form>
+  <% } %>
+</nav>
+<% if (biz.status === 'pending') { %>
+<div class="wrap"><div class="flash flash-warn">Tu ficha está en revisión. Mientras tanto completá la información y cargá tus productos: apenas la aprobemos, queda publicada.</div></div>
+<% } %>

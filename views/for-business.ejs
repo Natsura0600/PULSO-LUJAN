@@ -1,0 +1,96 @@
+<%- include('partials/header') %>
+<section class="hero hero-biz">
+  <div class="wrap hero-in">
+    <div class="hero-text">
+      <p class="hero-kicker"><span class="dot"></span> Para comercios de Luján</p>
+      <h1>No pagás por aparecer.<br><span>Pagás por conectar clientes.</span></h1>
+      <p class="hero-sub">Tu ficha y tu catálogo en Pulso, pedidos de vecinos que buscan lo que vendés y métricas para saber cuántas consultas te llegaron.</p>
+      <div class="cta-actions">
+        <a class="btn btn-accent btn-lg" href="/registro">Crear mi ficha gratis</a>
+        <a class="btn btn-ghost-light btn-lg" href="#contacto">Quiero que me ayuden</a>
+      </div>
+      <p class="hero-stats">Prueba de <strong><%= settings.trial_days %> días</strong> con todas las funciones Pro, sin compromiso.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap section">
+  <div class="features">
+    <div class="feature"><span>🏪</span><h3>Tu ficha propia</h3><p>Descripción, dirección y mapa, horarios, WhatsApp, web y redes en una sola página para compartir.</p></div>
+    <div class="feature"><span>📦</span><h3>Catálogo sin sitio web</h3><p>Subí tus productos con fotos, precios y disponibilidad. Aparecen en el buscador de toda la ciudad.</p></div>
+    <div class="feature"><span>⚡</span><h3>Pedidos BUSCO YA</h3><p>Recibí pedidos de vecinos de tu rubro y respondé con precio y foto. Ellos te escriben por WhatsApp.</p></div>
+    <div class="feature"><span>📈</span><h3>Métricas claras</h3><p>Visitas, clics a WhatsApp, web y mapa, pedidos recibidos y canjes de promociones.</p></div>
+  </div>
+</section>
+
+<section class="wrap section" id="planes">
+  <h2 class="center">Planes simples</h2>
+  <p class="center muted">Los vecinos usan Pulso gratis. Vos elegís cuánto querés crecer.</p>
+  <div class="plans">
+    <div class="plan">
+      <h3>Básico</h3>
+      <p class="plan-price">Gratis</p>
+      <ul>
+        <li>Ficha con descripción, contacto, mapa y web</li>
+        <li>Hasta <%= settings.basic_product_limit %> productos publicados</li>
+        <li>QR para tu vidriera</li>
+      </ul>
+      <a class="btn btn-ghost btn-block" href="/registro">Empezar gratis</a>
+    </div>
+    <div class="plan plan-pop">
+      <span class="plan-badge">Más elegido</span>
+      <h3>Comercio Pro</h3>
+      <p class="plan-price"><%= fmtPrice(settings.price_pro) %><small>/mes</small></p>
+      <ul>
+        <li>Todo lo del Básico</li>
+        <li>Catálogo ampliado (hasta <%= settings.pro_product_limit %> productos)</li>
+        <li>Promociones con código de canje</li>
+        <li>Pedidos BUSCO YA de tu rubro</li>
+        <li>Métricas de visitas y clics</li>
+      </ul>
+      <a class="btn btn-accent btn-block" href="/registro">Probar <%= settings.trial_days %> días gratis</a>
+    </div>
+    <div class="plan">
+      <h3>Destacado</h3>
+      <p class="plan-price"><%= fmtPrice(settings.price_destacado) %><small>/mes</small></p>
+      <ul>
+        <li>Todo lo de Comercio Pro</li>
+        <li>Espacios destacados en inicio y búsquedas, identificados como “Patrocinado”</li>
+        <li>Más análisis de resultados</li>
+      </ul>
+      <a class="btn btn-ghost btn-block" href="/registro">Empezar</a>
+    </div>
+  </div>
+  <p class="center fine-note">Precios finales en pesos argentinos. Pulso no cobra comisión por venta: los precios, stock y la atención son responsabilidad de cada comercio.</p>
+</section>
+
+<section class="wrap section narrow">
+  <h2>Cómo empezar</h2>
+  <ol class="steps steps-light">
+    <li><b>01</b><div><strong>Creá tu cuenta</strong><span>Solo necesitás email, nombre del comercio y WhatsApp.</span></div></li>
+    <li><b>02</b><div><strong>Completá la ficha</strong><span>Descripción, horarios, dirección y 4 a 6 fotos.</span></div></li>
+    <li><b>03</b><div><strong>Publicá tus productos</strong><span>Nombre, foto, precio y disponibilidad. Se editan en un minuto desde el celular.</span></div></li>
+    <li><b>04</b><div><strong>Recibí consultas</strong><span>Revisamos tu ficha, la publicamos y empezás a recibir clientes.</span></div></li>
+  </ol>
+</section>
+
+<section class="wrap section narrow" id="contacto">
+  <div class="card form-card">
+    <h2>¿Preferís que te ayudemos a cargarlo?</h2>
+    <p class="muted">Dejanos tus datos y pasamos por tu local o te escribimos para armar tu ficha juntos.</p>
+    <% if (sent) { %><div class="flash flash-ok">¡Gracias! Te vamos a contactar a la brevedad.</div><% } %>
+    <form method="post" action="/comercios/contacto">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="text" name="website_hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="row2">
+        <label class="field"><span>Tu nombre *</span><input name="name" required maxlength="80"></label>
+        <label class="field"><span>Comercio</span><input name="business" maxlength="80"></label>
+      </div>
+      <label class="field"><span>WhatsApp *</span><input name="whatsapp" required inputmode="tel"></label>
+      <label class="field"><span>Mensaje</span><textarea name="message" rows="3" placeholder="Rubro, dirección, mejor horario para visitarte…"></textarea></label>
+      <button class="btn btn-primary">Enviar</button>
+      <% if (settings.contact_whatsapp) { %> <a class="btn btn-wa" href="<%= waLink(settings.contact_whatsapp, 'Hola! Tengo un comercio y quiero sumarme a Pulso Luján.') %>" target="_blank" rel="noopener">Escribir por WhatsApp</a><% } %>
+    </form>
+  </div>
+</section>
+<%- include('partials/footer') %>

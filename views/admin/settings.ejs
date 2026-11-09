@@ -1,0 +1,62 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <div class="panel-grid">
+    <form class="card form-card" method="post" action="/admin/ajustes">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <h2>Precios y límites</h2>
+      <div class="row2">
+        <label class="field"><span>Comercio Pro ($/mes)</span><input name="price_pro" inputmode="numeric" value="<%= settings.price_pro %>"></label>
+        <label class="field"><span>Destacado ($/mes)</span><input name="price_destacado" inputmode="numeric" value="<%= settings.price_destacado %>"></label>
+      </div>
+      <div class="row2">
+        <label class="field"><span>Días de prueba Pro</span><input name="trial_days" inputmode="numeric" value="<%= settings.trial_days %>"></label>
+        <label class="field"><span>Productos plan Básico</span><input name="basic_product_limit" inputmode="numeric" value="<%= settings.basic_product_limit %>"></label>
+      </div>
+      <div class="row2">
+        <label class="field"><span>Productos plan Pro/Destacado</span><input name="pro_product_limit" inputmode="numeric" value="<%= settings.pro_product_limit %>"></label>
+        <label class="field"><span>Días de vigencia BUSCO YA</span><input name="request_days" inputmode="numeric" value="<%= settings.request_days %>"></label>
+      </div>
+      <label class="field"><span>Máx. pedidos BUSCO YA por vecino por día</span><input name="requests_per_day" inputmode="numeric" value="<%= settings.requests_per_day %>"></label>
+      <h2>Contacto de Pulso</h2>
+      <label class="field"><span>WhatsApp de Pulso</span><input name="contact_whatsapp" value="<%= settings.contact_whatsapp %>" placeholder="2323 123456"><small>Se usa en los botones “Contratar plan”, “Olvidé mi contraseña” y en el pie.</small></label>
+      <label class="field"><span>Email de contacto</span><input name="contact_email" value="<%= settings.contact_email %>"></label>
+      <label class="field"><span>Instagram</span><input name="instagram" value="<%= settings.instagram %>" placeholder="@pulsolujan"></label>
+      <label class="field"><span>Instrucciones de pago (las ve el comercio)</span><textarea name="payment_instructions" rows="5"><%= settings.payment_instructions %></textarea></label>
+      <button class="btn btn-accent">Guardar ajustes</button>
+    </form>
+
+    <div>
+      <div class="card pad" id="rubros">
+        <h2>Rubros</h2>
+        <% categories.forEach(function(c){ %>
+        <form method="post" action="/admin/categorias/<%= c.id %>" class="inline-form cat-edit">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <input class="input input-icon" name="icon" value="<%= c.icon %>" aria-label="Ícono">
+          <input class="input" name="name" value="<%= c.name %>" aria-label="Nombre">
+          <button class="btn btn-ghost btn-sm">Guardar</button>
+        </form>
+        <% }) %>
+        <form method="post" action="/admin/categorias" class="inline-form cat-edit">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <input class="input input-icon" name="icon" placeholder="🏪" aria-label="Ícono">
+          <input class="input" name="name" placeholder="Nuevo rubro" required aria-label="Nombre">
+          <button class="btn btn-primary btn-sm">Agregar</button>
+        </form>
+      </div>
+      <div class="card pad">
+        <h2>Copia de seguridad</h2>
+        <p class="small muted">Descarga todos los datos (comercios, productos, pedidos, pagos) en un archivo. Las fotos quedan guardadas en Cloudflare R2. Hacelo una vez por semana y guardalo en Drive o en tu computadora.</p>
+        <a class="btn btn-primary" href="/admin/respaldo">Descargar respaldo</a>
+      </div>
+      <form class="card form-card" method="post" action="/admin/cuenta">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <h2>Contraseña de administrador</h2>
+        <label class="field"><span>Actual</span><input type="password" name="current" required></label>
+        <label class="field"><span>Nueva (mín. 8)</span><input type="password" name="password" required minlength="8"></label>
+        <button class="btn btn-ghost">Cambiar</button>
+      </form>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

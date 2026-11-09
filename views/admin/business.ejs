@@ -1,0 +1,96 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <p><a href="/admin/comercios">← Comercios</a></p>
+  <div class="panel-grid">
+    <div class="card pad">
+      <h2><%= biz.name %></h2>
+      <p><span class="tag <%= biz.status === 'approved' ? 'tag-open' : biz.status === 'pending' ? 'tag-warn' : 'tag-closed' %>"><%= { approved: 'Publicado', pending: 'En revisión', suspended: 'Suspendido' }[biz.status] %></span>
+        <span class="tag"><%= PLAN_NAMES[biz.effPlan] %><%= biz.effPlan !== 'basico' ? ' hasta ' + fmtDate(biz.plan_until) : '' %></span></p>
+      <p class="small"><strong>Dueño:</strong> <%= biz.owner_name %> · <%= biz.email %><br>
+        <strong>Rubro:</strong> <%= biz.category_name || '—' %> · <strong>Zona:</strong> <%= biz.zone || '—' %><br>
+        <strong>Dirección:</strong> <%= biz.address || '—' %><br>
+        <strong>WhatsApp:</strong> <%= biz.whatsapp || '—' %> · <strong>Productos:</strong> <%= products %><br>
+        <strong>Alta:</strong> <%= fmtDate(biz.created_at) %> · <strong>Actualizado:</strong> <%= timeAgo(biz.updated_at) %></p>
+      <div class="btn-row">
+        <a class="btn btn-ghost btn-sm" href="/c/<%= biz.slug %>" target="_blank">Ver ficha</a>
+        <form method="post" action="/admin/comercios/<%= biz.id %>/actuar" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-primary btn-sm">Editar como este comercio</button></form>
+        <% if (biz.whatsapp) { %><a class="btn btn-wa btn-sm" href="<%= waLink(biz.whatsapp, 'Hola ' + biz.name + '! Te escribo de Pulso Luján.') %>" target="_blank" rel="noopener">WhatsApp</a><% } %>
+      </div>
+      <h3>Estado</h3>
+      <form method="post" action="/admin/comercios/<%= biz.id %>/estado" class="btn-row">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <% if (biz.status !== 'approved') { %><button class="btn btn-accent btn-sm" name="status" value="approved">Aprobar y publicar</button><% } %>
+        <% if (biz.status !== 'suspended') { %><button class="btn btn-ghost btn-sm danger" name="status" value="suspended">Suspender</button><% } %>
+        <% if (biz.status !== 'pending') { %><button class="btn btn-ghost btn-sm" name="status" value="pending">Pasar a revisión</button><% } %>
+      </form>
+      <% if (!biz.plan_until && biz.status === 'pending') { %><p class="fine-note">Al aprobar se activa la prueba de <%= settings.trial_days %> días de Comercio Pro.</p><% } %>
+    </div>
+
+    <div class="card pad">
+      <h3>Registrar pago</h3>
+      <form method="post" action="/admin/comercios/<%= biz.id %>/pago">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="row2">
+          <label class="field"><span>Plan</span><select name="plan"><option value="pro">Comercio Pro (<%= fmtPrice(settings.price_pro) %>)</option><option value="destacado" <%= biz.plan === 'destacado' ? 'selected' : '' %>>Destacado (<%= fmtPrice(settings.price_destacado) %>)</option></select></label>
+          <label class="field"><span>Meses</span><input name="months" inputmode="numeric" value="1"></label>
+        </div>
+        <div class="row2">
+          <label class="field"><span>Importe ($)</span><input name="amount" inputmode="numeric" placeholder="Vacío = precio × meses"></label>
+          <label class="field"><span>Medio</span><input name="method" placeholder="Transferencia, MP, efectivo"></label>
+        </div>
+        <label class="field"><span>Nota</span><input name="note"></label>
+        <button class="btn btn-accent btn-sm">Registrar pago y extender plan</button>
+      </form>
+      <% if (payments.length) { %>
+      <table class="table small"><tr><th>Fecha</th><th>Plan</th><th class="num">Meses</th><th class="num">Importe</th><th>Medio</th></tr>
+        <% payments.forEach(function(p){ %><tr><td><%= fmtDate(p.created_at) %></td><td><%= PLAN_NAMES[p.plan] %></td><td class="num"><%= p.months %></td><td class="num"><%= fmtPrice(p.amount) %></td><td><%= p.method %></td></tr><% }) %>
+      </table>
+      <% } %>
+    </div>
+
+    <div class="card pad">
+      <h3>Ajuste manual de plan</h3>
+      <form method="post" action="/admin/comercios/<%= biz.id %>/plan">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="row2">
+          <label class="field"><span>Plan</span><select name="plan"><% ['basico', 'pro', 'destacado'].forEach(function(p){ %><option value="<%= p %>" <%= biz.plan === p ? 'selected' : '' %>><%= PLAN_NAMES[p] %></option><% }) %></select></label>
+          <label class="field"><span>Vigente hasta</span><input type="date" name="plan_until" value="<%= biz.plan_until ? biz.plan_until.slice(0, 10) : '' %>"></label>
+        </div>
+        <button class="btn btn-ghost btn-sm">Guardar plan</button>
+      </form>
+      <h3>Métricas (30 días)</h3>
+      <p class="small">Visitas: <%= (counts.view || 0) + (counts.product_view || 0) %> · WhatsApp: <%= (counts.click_whatsapp || 0) + (counts.click_proposal_whatsapp || 0) %> · Mapa: <%= counts.click_map || 0 %> · Web: <%= counts.click_web || 0 %> · Pedidos recibidos: <%= counts.request_received || 0 %> · Propuestas: <%= counts.proposal_sent || 0 %></p>
+    </div>
+
+    <div class="card pad">
+      <h3>Notas internas</h3>
+      <form method="post" action="/admin/comercios/<%= biz.id %>/nota">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <textarea class="input" name="admin_note" rows="4" placeholder="Visitado el…, interesado en…"><%= biz.admin_note %></textarea>
+        <button class="btn btn-ghost btn-sm">Guardar nota</button>
+      </form>
+      <h3>Acceso</h3>
+      <form method="post" action="/admin/comercios/<%= biz.id %>/password" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input class="input" name="password" placeholder="Nueva contraseña (vacío = generar)">
+        <button class="btn btn-ghost btn-sm">Restablecer</button>
+      </form>
+    </div>
+  </div>
+
+  <% if (reports.length) { %>
+  <h2 class="h2-sec">Reportes de este comercio</h2>
+  <ul class="plain"><% reports.forEach(function(r){ %><li><strong><%= r.reason %></strong> <%= r.details %> <span class="small muted">· <%= timeAgo(r.created_at) %><%= r.resolved ? ' · resuelto' : '' %></span></li><% }) %></ul>
+  <% } %>
+
+  <details class="danger-zone">
+    <summary>Eliminar comercio</summary>
+    <form method="post" action="/admin/comercios/<%= biz.id %>/borrar" class="inline-form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input class="input" name="confirm" placeholder="Escribí: <%= biz.slug %>">
+      <button class="btn btn-ghost btn-sm danger">Eliminar definitivamente</button>
+    </form>
+  </details>
+</div>
+<%- include('../partials/footer') %>

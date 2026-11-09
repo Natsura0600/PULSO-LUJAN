@@ -1,0 +1,16 @@
+{
+  "name": "Pulso Luján",
+  "short_name": "Pulso",
+  "description": "Comercios, productos y promociones de Luján. Publicá lo que buscás en BUSCO YA.",
+  "lang": "es-AR",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#13263a",
+  "theme_color": "#13263a",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+<%- include('../partials/panel-nav') %>
+<% const availNames = { disponible: 'Disponible', pocas: 'Últimas unidades', a_pedido: 'A pedido', sin_stock: 'Sin stock' }; %>
+<div class="wrap panel-body">
+  <% if (!limits.buscoYa) { %>
+  <div class="card pad locked">
+    <h2>🔒 Pedidos BUSCO YA</h2>
+    <p>Hay <strong><%= lockedCount %></strong> pedido<%= lockedCount === 1 ? '' : 's' %> activo<%= lockedCount === 1 ? '' : 's' %> de vecinos en tu rubro ahora mismo. Con Comercio Pro podés responderlos con precio, foto y disponibilidad.</p>
+    <a class="btn btn-accent" href="/panel/plan">Activar Comercio Pro</a>
+  </div>
+  <% } else { %>
+  <h2>Pedidos de vecinos en tu rubro <span class="muted">(<%= open.length %>)</span></h2>
+  <p class="small muted">Respondé rápido: las primeras propuestas son las que más se contactan. El vecino ve tu propuesta y te escribe por WhatsApp.</p>
+  <% if (!biz.status || biz.status !== 'approved') { %><div class="flash flash-warn">Vas a poder responder cuando tu ficha esté publicada.</div><% } %>
+  <% if (!open.length) { %>
+    <div class="empty small-empty"><p class="empty-ic">📭</p><p>No hay pedidos nuevos por ahora. Te mostramos acá cada pedido que publiquen vecinos en tu rubro.</p></div>
+  <% } %>
+  <div class="req-list">
+    <% open.forEach(function(rq){ %>
+    <article class="card req" id="r<%= rq.id %>">
+      <div class="req-head">
+        <span class="small muted"><%= rq.category_icon %> <%= rq.name.split(' ')[0] %> · <%= timeAgo(rq.created_at) %><%= rq.zone ? ' · ' + rq.zone : '' %></span>
+        <span class="small">Vence <%= fmtDate(rq.expires_at) %></span>
+      </div>
+      <p class="req-desc">“<%= rq.description %>”</p>
+      <p class="small"><% if (rq.budget) { %><strong>Presupuesto:</strong> <%= fmtPrice(rq.budget) %> · <% } %><strong>Para:</strong> <%= rq.deadline || 'Sin plazo' %></p>
+      <% if (rq.photo) { %><a href="<%= rq.photo %>" target="_blank"><img src="<%= rq.photo %>" class="thumb" alt="Foto de referencia"></a><% } %>
+      <% if (biz.status === 'approved') { %>
+      <details class="respond">
+        <summary class="btn btn-accent btn-sm">Responder</summary>
+        <form method="post" action="/panel/pedidos/<%= rq.id %>/responder" enctype="multipart/form-data">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <label class="field"><span>Mensaje *</span><textarea name="message" rows="3" required maxlength="800" placeholder="Tengo lo que buscás: … Podés pasar hoy hasta las 20 h."></textarea></label>
+          <div class="row2">
+            <label class="field"><span>Precio ($)</span><input name="price" inputmode="numeric"></label>
+            <label class="field"><span>Disponibilidad</span><select name="availability"><% Object.keys(availNames).filter(k => k !== 'sin_stock').forEach(function(k){ %><option value="<%= k %>"><%= availNames[k] %></option><% }) %></select></label>
+          </div>
+          <div class="row2">
+            <label class="field"><span>Entrega</span><select name="delivery"><option value="retiro">Retiro en el local</option><option value="envio">Envío</option><option value="ambos">Retiro o envío</option></select></label>
+            <label class="field"><span>Producto de tu catálogo (opcional)</span>
+              <select name="product_id"><option value="">—</option><% myProducts.forEach(function(p){ %><option value="<%= p.id %>"><%= p.name %></option><% }) %></select>
+            </label>
+          </div>
+          <label class="field"><span>Foto (opcional)</span><input type="file" name="photo" accept="image/*"><small>Si elegís un producto del catálogo, usamos su foto.</small></label>
+          <button class="btn btn-accent">Enviar propuesta</button>
+        </form>
+      </details>
+      <% } %>
+      <div class="req-foot">
+        <form method="post" action="/panel/pedidos/<%= rq.id %>/descartar" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link small">No tengo esto</button></form>
+        <form method="post" action="/panel/pedidos/<%= rq.id %>/reportar" class="inline" data-confirm="¿Reportar este pedido como falso o inapropiado?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link small muted">Reportar</button></form>
+      </div>
+    </article>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <% if (sent.length) { %>
+  <h2 class="h2-sec">Propuestas enviadas</h2>
+  <div class="table-wrap"><table class="table">
+    <tr><th>Pedido</th><th>Tu propuesta</th><th class="num">Competencia</th><th>Estado</th></tr>
+    <% sent.forEach(function(s){ %>
+    <tr>
+      <td><%= s.request_description.slice(0, 80) %><%= s.request_description.length > 80 ? '…' : '' %><br><span class="small muted"><%= timeAgo(s.created_at) %></span></td>
+      <td><%= s.price ? fmtPrice(s.price) : '—' %><br><span class="small muted"><%= s.message.slice(0, 60) %></span></td>
+      <td class="num"><%= s.competitors %></td>
+      <td><span class="tag <%= s.request_status === 'open' && s.expires_at > sqlNow() ? 'tag-open' : 'tag-closed' %>"><%= s.request_status === 'open' && s.expires_at > sqlNow() ? 'Activo' : 'Cerrado' %></span></td>
+    </tr>
+    <% }) %>
+  </table></div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

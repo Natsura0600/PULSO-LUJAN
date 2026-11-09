@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+<%- include('../partials/admin-nav') %>
+<div class="wrap panel-body">
+  <p class="small muted">Comercios que pidieron ayuda desde la página “Sumá tu comercio”.</p>
+  <div class="table-wrap"><table class="table">
+    <tr><th>Nombre</th><th>Comercio</th><th>WhatsApp</th><th>Mensaje</th><th>Fecha</th><th></th></tr>
+    <% list.forEach(function(l){ %>
+    <tr><td><%= l.name %></td><td><%= l.business %></td>
+      <td><% if (l.whatsapp) { %><a class="btn btn-wa btn-sm" href="<%= waLink(l.whatsapp, 'Hola ' + l.name + '! Te escribo de Pulso Luján por tu consulta.') %>" target="_blank" rel="noopener"><%= l.whatsapp %></a><% } %></td>
+      <td class="small"><%= l.message %></td><td class="small"><%= timeAgo(l.created_at) %></td>
+      <td><form method="post" action="/admin/contactos/<%= l.id %>/borrar" data-confirm="¿Borrar este contacto?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link small">Borrar</button></form></td></tr>
+    <% }) %>
+    <% if (!list.length) { %><tr><td colspan="6" class="muted">Sin contactos.</td></tr><% } %>
+  </table></div>
+</div>
+<%- include('../partials/footer') %>

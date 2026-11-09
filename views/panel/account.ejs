@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<%- include('../partials/panel-nav') %>
+<div class="wrap panel-body">
+  <form class="card form-card" method="post" action="/panel/cuenta">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Mi cuenta</h2>
+    <% if (error) { %><div class="flash flash-warn"><%= error %></div><% } %>
+    <label class="field"><span>Nombre</span><input name="name" value="<%= user.name %>"></label>
+    <label class="field"><span>Email de acceso</span><input type="email" name="email" value="<%= user.email %>"></label>
+    <label class="field"><span>Nueva contraseña <small>(dejar vacío para no cambiarla)</small></span><input type="password" name="password" minlength="8" autocomplete="new-password"></label>
+    <label class="field"><span>Contraseña actual *</span><input type="password" name="current" required autocomplete="current-password"></label>
+    <button class="btn btn-primary">Guardar cambios</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

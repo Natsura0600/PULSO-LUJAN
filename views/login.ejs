@@ -1,0 +1,20 @@
+<%- include('partials/header') %>
+<div class="wrap section-sm auth">
+  <div class="card form-card">
+    <h1 class="page-title">Ingresar</h1>
+    <p class="muted">Acceso para comercios y administración.</p>
+    <% if (error) { %><div class="flash flash-warn"><%= error %></div><% } %>
+    <form method="post" action="/ingresar">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="hidden" name="next" value="<%= next %>">
+      <label class="field"><span>Email</span><input type="email" name="email" required autocomplete="email" value="<%= email %>"></label>
+      <label class="field"><span>Contraseña</span><input type="password" name="password" required autocomplete="current-password"></label>
+      <button class="btn btn-primary btn-lg btn-block">Ingresar</button>
+    </form>
+    <p class="center small">¿Olvidaste tu contraseña?
+      <% if (settings.contact_whatsapp) { %><a href="<%= waLink(settings.contact_whatsapp, 'Hola! Olvidé mi contraseña de Pulso Luján. Mi email es: ') %>" target="_blank" rel="noopener">Escribinos por WhatsApp</a><% } else { %>Escribinos y te generamos una nueva.<% } %>
+    </p>
+    <p class="center small">¿Tenés un comercio? <a href="/registro">Registralo gratis</a></p>
+  </div>
+</div>
+<%- include('partials/footer') %>

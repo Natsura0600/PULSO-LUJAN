@@ -1,0 +1,58 @@
+<%- include('partials/header') %>
+<% const avail = { disponible: ['Disponible', 'tag-open'], pocas: ['Últimas unidades', 'tag-warn'], a_pedido: ['A pedido', ''], sin_stock: ['Sin stock', 'tag-closed'] }[p.availability] || ['', '']; %>
+<% const deliveryText = { retiro: 'Retiro en el local', envio: 'Envío a domicilio', ambos: 'Retiro en el local o envío' }[p.delivery] || ''; %>
+<script type="application/ld+json"><%- JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: p.name, description: p.description, image: p.photo ? abs(p.photo) : undefined, offers: p.price ? { '@type': 'Offer', price: p.price, priceCurrency: 'ARS', availability: p.availability === 'sin_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', seller: { '@type': 'Organization', name: p.business_name } } : undefined }).replace(/</g, '\\u003c') %></script>
+<div class="wrap section-sm">
+  <nav class="crumbs"><a href="/">Inicio</a> › <a href="/buscar?cat=<%= p.category_slug %>"><%= p.category_name %></a> › <a href="/c/<%= p.business_slug %>"><%= p.business_name %></a></nav>
+  <% if (!p.active) { %><div class="flash flash-warn">Este producto está pausado: solo vos lo ves.</div><% } %>
+  <div class="product-layout">
+    <div class="product-photo">
+      <% if (p.photo) { %><img src="<%= p.photo %>" alt="<%= p.name %>"><% } else { %><span class="noimg big">📦</span><% } %>
+    </div>
+    <div class="product-info">
+      <h1><%= p.name %></h1>
+      <p class="price big"><%= p.price ? fmtPrice(p.price) : 'Consultar precio' %> <% if (p.price_note) { %><span class="muted small"><%= p.price_note %></span><% } %></p>
+      <div class="biz-badges">
+        <% if (avail[0]) { %><span class="tag <%= avail[1] %>"><%= avail[0] %></span><% } %>
+        <% if (deliveryText) { %><span class="tag"><%= deliveryText %></span><% } %>
+      </div>
+      <% if (p.description) { %><div class="prose"><p><%- String(p.description).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g, '<br>') %></p></div><% } %>
+
+      <div class="buy-box">
+        <% if (p.whatsapp || p.phone) { %>
+          <a class="btn btn-wa btn-lg btn-block" href="/go/whatsapp/<%= p.business_id %>?p=<%= p.id %>" rel="nofollow">Consultar o comprar por WhatsApp</a>
+        <% } %>
+        <% if (p.website) { %><a class="btn btn-ghost btn-block" href="/go/web/<%= p.business_id %>?p=<%= p.id %>" rel="nofollow" target="_blank">Ver en el sitio del comercio</a><% } %>
+        <% if (p.address) { %><a class="btn btn-ghost btn-block" href="/go/map/<%= p.business_id %>?p=<%= p.id %>" rel="nofollow" target="_blank">Cómo llegar al local</a><% } %>
+        <button class="btn btn-ghost btn-block" data-share data-title="<%= p.name %>" data-url="<%= baseUrl %>/p/<%= p.id %>">Compartir</button>
+      </div>
+
+      <a class="seller" href="/c/<%= p.business_slug %>">
+        <div class="biz-logo"><% if (p.logo) { %><img src="<%= thumb(p.logo) %>" alt=""><% } else { %><span>🏪</span><% } %></div>
+        <div><strong><%= p.business_name %></strong><br><span class="small muted"><%= p.address || '' %><%= p.zone ? ' · ' + p.zone : '' %> · <%= p.open ? 'Abierto ahora' : 'Cerrado ahora' %></span></div>
+        <span class="arrow">→</span>
+      </a>
+      <p class="fine-note">Precio y disponibilidad informados por el comercio. Actualizado <%= timeAgo(p.updated_at) %>. La compra se coordina directamente con el negocio.</p>
+      <details class="report">
+        <summary>¿El precio o el stock no coinciden? Avisanos</summary>
+        <form method="post" action="/reportar">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <input type="hidden" name="business_id" value="<%= p.business_id %>">
+          <input type="hidden" name="product_id" value="<%= p.id %>">
+          <input type="text" name="website_hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <select name="reason" class="input"><option>Precio incorrecto</option><option>No hay stock</option><option>Producto inapropiado</option><option>Otro</option></select>
+          <textarea name="details" class="input" rows="2" placeholder="Detalle (opcional)"></textarea>
+          <button class="btn btn-ghost btn-sm">Enviar</button>
+        </form>
+      </details>
+    </div>
+  </div>
+
+  <% if (others.length) { %>
+  <div class="sec-head"><h2>Más de <%= p.business_name %></h2><a href="/c/<%= p.business_slug %>">Ver ficha →</a></div>
+  <div class="grid grid-prod">
+    <% others.forEach(function(o){ %><%- include('partials/product-card', { p: o }) %><% }) %>
+  </div>
+  <% } %>
+</div>
+<%- include('partials/footer') %>
