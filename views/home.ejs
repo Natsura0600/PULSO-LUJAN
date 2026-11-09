@@ -47,41 +47,6 @@
 </section>
 <% } %>
 
-<% if (promos.length) { %>
-<section class="wrap section">
-  <div class="sec-head"><h2>Promociones vigentes</h2><a href="/promociones">Ver todas →</a></div>
-  <div class="hscroll">
-    <% promos.forEach(function(pr){ %><%- include('partials/promo-card', { pr }) %><% }) %>
-  </div>
-</section>
-<% } %>
-
-<% if (products.length) { %>
-<section class="wrap section">
-  <div class="sec-head"><h2>Recién publicados</h2><a href="/buscar?tipo=productos">Ver más →</a></div>
-  <div class="grid grid-prod">
-    <% products.forEach(function(p){ %><%- include('partials/product-card', { p }) %><% }) %>
-  </div>
-</section>
-<% } %>
-
-<% if (openNow.length) { %>
-<section class="wrap section">
-  <div class="sec-head"><h2>Abiertos ahora</h2><a href="/buscar?abierto=1&tipo=comercios">Ver todos →</a></div>
-  <div class="grid grid-biz">
-    <% openNow.forEach(function(b){ %><%- include('partials/biz-card', { b }) %><% }) %>
-  </div>
-  <p class="fine-note">Horarios informados por cada comercio.</p>
-</section>
-<% } else if (recent.length) { %>
-<section class="wrap section">
-  <div class="sec-head"><h2>Comercios de Luján</h2><a href="/buscar?tipo=comercios">Ver todos →</a></div>
-  <div class="grid grid-biz">
-    <% recent.forEach(function(b){ %><%- include('partials/biz-card', { b }) %><% }) %>
-  </div>
-</section>
-<% } %>
-
 <section class="wrap section">
   <div class="how">
     <div class="how-head">
