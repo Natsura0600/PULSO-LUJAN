@@ -1,6 +1,6 @@
 <a class="card biz-card <%= typeof sponsoredCard !== 'undefined' && sponsoredCard ? 'is-sponsored' : '' %>" href="/c/<%= b.slug %>">
   <div class="biz-cover" <% if (b.cover) { %>style="background-image:url('<%= thumb(b.cover) %>')"<% } %>>
-    <% if (typeof sponsoredCard !== 'undefined' && sponsoredCard) { %><span class="tag tag-sponsored">Patrocinado</span><% } %>
+    <% if (typeof sponsoredCard !== 'undefined' && sponsoredCard) { %><span class="tag tag-sponsored">Destacados</span><% } %>
     <% if (b.hasHours) { %><span class="tag <%= b.open ? 'tag-open' : 'tag-closed' %>"><%= b.open ? 'Abierto ahora' : 'Cerrado' %></span><% } %>
   </div>
   <div class="biz-body">
